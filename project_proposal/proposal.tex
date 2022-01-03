@@ -1,0 +1,88 @@
+%\documentclass[a4paper,german,10pt]{tumarticle}
+\documentclass[a4paper,english,10pt,NET]{tumarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage{tumfonts}
+\usepackage{tumlocale}
+\usepackage{tumcmd}
+\usepackage{booktabs}
+\usepackage{eurosym}
+\usepackage{enumitem}
+\usepackage{subfig}
+\usepackage[font=footnotesize,labelfont=bf]{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{wrapfig}
+\usepackage{pgfgantt}
+\usepackage{adjustbox}
+\usepackage{pdflscape}
+\usepackage{hyperref}
+
+\usetikzlibrary{decorations.text}
+
+\usepackage{siunitx}
+\sisetup{detect-weight=true, detect-family=true, per-mode=symbol}
+\DeclareSIUnit\year{a}
+\DeclareSIUnit{\EUR}{\text{EUR}}
+\DeclareSIUnit{\week}{Woche}
+
+\def\yes{\textcolor{TUMDarkerGreen}{\large\checkmark}}
+\def\maybe{\textcolor{TUMOrange}{\Large$\mathbit\circ$}}
+\def\no{\textcolor{TUMRed}{\Large\texttimes}}
+
+% Set document title. If no language is supplied, the document language is
+% assumed.
+
+\linespread{1.32}
+%\predisplaypenalty=10000000
+%\floatingpenalty = 20000000
+%\postdisplaypenalty = 2000000
+\widowpenalty=15000
+\setlength{\parindent}{0pt}
+
+
+
+\begin{document}
+
+\begin{center}
+	\bfseries\Large Validation Tool for \texttt{libmoeprlnc}\\[.5\baselineskip]
+\end{center}
+\begin{center}
+	\small Group 6\\ % Tobias Jülg and Ben Riegel % alphabetically sorted after last name
+	\today
+\end{center}
+
+
+\setcounter{tocdepth}{1}
+\renewcommand{\contentsname}{Anlagen}
+%\begin{tableofcontents}
+%\end{tableofcontents}
+
+\renewcommand{\emph}[1]{%
+	\textcolor{TUMBlue}{#1}%
+}
+
+
+% Motivation und Abstract
+\renewcommand{\abstractname}{Abstract}
+\begin{abstract}
+\setlength{\parindent}{0pt}
+\noindent%
+\footnotesize
+
+\ldots
+% TODO: add the slides in own words
+
+\end{abstract}
+
+\ldots
+% TODO: specify what exactly we want to achieve in our testing framework and how we want to achieve
+% it
+
+
+% Uncomment for bibliography
+%\bibliography{lit}
+%\bibliographystyle{plain}
+
+\end{document}
+
+

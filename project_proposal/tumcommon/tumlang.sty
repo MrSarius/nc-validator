@@ -1,0 +1,195 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tumlang}[2016/03/18 TUM language]
+
+\RequirePackage[english,ngerman]{babel}
+\RequirePackage[english=usenglishmax,ngerman=ngerman-x-latest]{hyphsubst}
+
+
+% language options
+\DeclareOption{english}{
+	\AtEndOfPackage{\selectlanguage{english}}
+	\AtBeginDocument{\selectlanguage{english}}
+}
+\DeclareOption{german}{
+	\AtEndOfPackage{\selectlanguage{ngerman}}
+	\AtBeginDocument{\selectlanguage{ngerman}}
+}
+\DeclareOption{ngerman}{
+	\AtEndOfPackage{\selectlanguage{ngerman}}
+	\AtBeginDocument{\selectlanguage{ngerman}}
+}
+
+% general TUM option
+\DeclareOption{TUM}{
+	\def\TUMnameenglish{Technical University of Munich}
+	\def\TUMnamegerman{Technische Universit\"at M\"unchen}
+	\addto\captionsenglish{\def\TUMname{\TUMnameenglish}}
+	\addto\captionsngerman{\def\TUMname{\TUMnamegerman}}
+	\let\tumlang@departmentnameenglish\@undefined
+	\let\tumlang@departmentnamegerman\@undefined
+	\let\departmentlogo\@undefined
+	\let\tumlang@chairnameenglish\@undefined
+	\let\tumlang@chairnamegerman\@undefined
+	\let\chairhead\@undefined
+}
+
+% department options
+\newcommand{\tumlang@define@department}[3]
+{
+	\expandafter\def\csname#1nameenglish\endcsname{#2}
+	\expandafter\def\csname#1namegerman\endcsname{#3}
+	\addto\captionsenglish{\expandafter\def\csname#1name\endcsname{\csname#1nameenglish\endcsname}}
+	\addto\captionsngerman{\expandafter\def\csname#1name\endcsname{\csname#1namegerman\endcsname}}
+	\DeclareOption{#1}{
+		\ds@TUM
+		\def\departmentname{\csname#1name\endcsname}
+		\def\departmentlogo{\csname#1Logo\endcsname}
+	}
+}
+\tumlang@define@department{AR}{Department of Architecture}{Fakult\"at f\"ur Architektur}
+\tumlang@define@department{BGU}{Department of Civil, Geo and Environmental Engineering}{Ingenieurfakult\"at Bau Geo Umwelt}
+\tumlang@define@department{CH}{Department of Chemistry}{Fakult\"at f\"ur Chemie}
+\tumlang@define@department{EI}{Department of Electrical and Computer Engineering}{Fakult\"at f\"ur Elektrotechnik und Informationstechnik}
+\tumlang@define@department{HFP}{School of Politics}{Hochschule f\"ur Politik}
+\tumlang@define@department{IN}{Department of Informatics}{Fakult\"at f\"ur Informatik}
+\tumlang@define@department{MA}{Department of Mathematics}{Fakult\"at f\"ur Mathematik}
+\tumlang@define@department{MED}{School of Medicine}{Fakult\"at f\"ur Medizin}
+\tumlang@define@department{MW}{Department of Mechanical Engineering}{Fakult\"at f\"ur Maschinenwesen}
+\tumlang@define@department{PH}{Department of Physics}{Fakult\"at f\"ur Physik}
+\tumlang@define@department{SE}{School of Education}{School of Education}
+\tumlang@define@department{SP}{Department of Sport and Health Sciences}{Fakult\"at f\"ur Sport- und Gesundheitswissenschaften}
+\tumlang@define@department{WI}{School of Management}{Fakult\"at f\"ur Wirtschaftswissenschaften}
+\tumlang@define@department{WZW}{School of Life Sciences Weihenstephan}{Wissenschaftszentrum Weihenstephan f\"ur Ern\"ahrung, Landnutzung und Umwelt}
+\tumlang@define@department{MAWI}{Department of Mathematics and School of Management}{Fakult\"aten f\"ur Mathematik und Wirtschaftswissenschaften}
+
+% chair options
+\newcommand{\tumlang@define@chair}[5]
+{
+	\expandafter\def\csname#1nameenglish\endcsname{#3}
+	\expandafter\def\csname#1namegerman\endcsname{#4}
+	\addto\captionsenglish{\expandafter\def\csname#1name\endcsname{\csname#1nameenglish\endcsname}}
+	\addto\captionsngerman{\expandafter\def\csname#1name\endcsname{\csname#1namegerman\endcsname}}
+	\expandafter\def\csname#1head\endcsname{#5}
+	\DeclareOption{#1}{
+		\csname ds@#2\endcsname
+		\def\chairname{\csname#1name\endcsname}
+		\def\chairhead{\csname#1head\endcsname}
+	}
+}
+
+\tumlang@define@chair{MSV}{EI}%
+	{Fachgebiet Methoden der Signalverarbeitung}%
+	{Fachgebiet Methoden der Signalverarbeitung}%
+	{Univ.-Prof.~Dr.-Ing.\ Wolfgang\ Utschick}%
+
+\tumlang@define@chair{SWT}{IN}%
+	{Chair of Applied Software Engineering}%
+	{Lehrstuhl f\"ur Angewandte Softwaretechnik}%
+	{Prof.~Dr.\ Bernd\ Br\"ugge}%
+\tumlang@define@chair{ER}{IN}%
+	{Chair of Robotics and Embedded Systems}%
+	{Lehrstuhl f\"ur Echtzeitsysteme und Robotik}%
+	{Prof.~Dr.-Ing.\ Alois\ Knoll}%
+\tumlang@define@chair{NET}{IN}%
+	{Chair of Network Architectures and Services}%
+	{Lehrstuhl f\"ur Netzarchitekturen und Netzdienste}%
+	{Prof.~Dr.-Ing.\ Georg\ Carle}%
+\tumlang@define@chair{OS}{IN}%
+	{Chair of Operating Systems}%
+	{Lehrstuhl f\"ur Betriebssysteme}%
+	{Prof.~Dr.\ Uwe\ Baumgarten}%
+\tumlang@define@chair{CAMPAR}{IN}%
+	{Chair of Computer Aided Medical Procedures \& Augmented Reality}%
+	{Lehrstuhl f\"ur Informatikanwendungen in der Medizin \& Augmented Reality}%
+	{Prof.~Dr.\ Nassir\ Navab}%
+\tumlang@define@chair{SEC}{IN}%
+	{Chair of IT Security}%
+	{Lehrstuhl f\"ur Sicherheit in der Informatik}%
+	{Prof.~Dr.\ Claudia\ Eckert}%
+
+\tumlang@define@chair{M1}{MA}%
+	{Chair of Mathematical Optimization}%
+	{Lehrstuhl für Mathematische Optimierung}%
+	{Prof.~Dr.\ Michael\ Ulbrich}%
+\tumlang@define@chair{M2}{MA}%
+	{Chair of Numerical Mathematics}%
+	{Lehrstuhl für Numerische Mathematik}%
+	{Prof.~Dr.\ Barbara\ Wohlmuth}%
+\tumlang@define@chair{M3}{MA}%
+	{Chair of Scientific Computing}%
+	{Lehrstuhl für Wissenschaftliches Rechnen}%
+	{Prof.~Dr.\ Folkmar\ Bornemann}%
+\tumlang@define@chair{M4}{MA}%
+	{Chair of Mathematical Statistics}%
+	{Lehrstuhl für Mathematische Statistik}%
+	{Prof.~Dr.\ Claudia\ Kl\"uppelberg}%
+\tumlang@define@chair{M5}{MA}%
+	{Chair of Mathematical Physics}%
+	{Lehrstuhl für Mathematische Physik}%
+	{Prof.~Dr.\ Michael\ M.\ Wolf}%
+\tumlang@define@chair{M6}{MA}%
+	{Chair of Mathematical Modelling}%
+	{Lehrstuhl für Mathematische Modellbildung}%
+	{Prof.~Dr.\ Martin\ Brokate}%
+\tumlang@define@chair{M7}{MA}%
+	{Chair of Analysis}%
+	{Lehrstuhl für Analysis}%
+	{Prof.~Dr.\ Gero\ Friesecke}%
+\tumlang@define@chair{M8}{MA}%
+	{Chair of Dynamical Systems}%
+	{Lehrstuhl für Dynamische Systeme}%
+	{Prof.~Dr.\ Jürgen\ Scheurle}%
+\tumlang@define@chair{M9}{MA}%
+	{Chair of Applied Geometry and Discrete Mathematics}%
+	{Lehrstuhl für Angewandte Geometrie und Diskrete Mathematik}%
+	{Prof.~Dr.\ Peter\ Gritzmann}%
+\tumlang@define@chair{M10}{MA}%
+	{Chair of Geometry and Visualization}%
+	{Lehrstuhl für Geometrie und Visualisierung}%
+	{Prof.~Dr.~Dr.\ Jürgen\ Richter-Gebert}%
+\tumlang@define@chair{M11}{MA}%
+	{Chair of Algebra}%
+	{Lehrstuhl f\"ur Algebra}%
+	{Prof.~Dr.\ Gregor\ Kemper}%
+\tumlang@define@chair{M12}{MA}%
+	{Chair of Mathematical modeling of biological systems}%
+	{Lehrstuhl für Mathematische Modellierung biologischer Systeme}%
+	{Prof.~Dr.~Dr.\ Fabian\ Theis}%
+\tumlang@define@chair{M13}{MA}%
+	{Chair of Mathematical Finance}%
+	{Lehrstuhl für Finanzmathematik}%
+	{Prof.~Dr.\ Rudi\ Zagst}%
+\tumlang@define@chair{M14}{MA}%
+	{Chair of Probability Theory}%
+	{Lehrstuhl für Wahrscheinlichkeitstheorie}%
+	{Prof.~Dr.\ Nina\ Gantert}%
+\tumlang@define@chair{M15}{MA}%
+	{Chair of Applied Numerical Analysis}%
+	{Lehrstuhl für Angewandte Numerische Analysis}%
+	{Prof.~Dr.\ Massimo\ Fornasier}%
+\tumlang@define@chair{M16}{MA}%
+	{Chair of Numerical Methods for Plasma Physic}%
+	{Lehrstuhl für Numerische Methoden der Plasmaphysik}%
+	{Prof.~Dr.\ Eric\ Sonnendrücker}%
+\tumlang@define@chair{M17}{MA}%
+	{Chair of Optimal Control}%
+	{Lehrstuhl f\"ur Optimalsteuerung}%
+	{Prof.~Dr.\ Boris\ Vexler}%
+
+\tumlang@define@chair{TFD}{MW}%
+	{Associate Professorship of Thermo-Fluid Dynamics}%
+	{Professur f\"ur Thermofluiddynamik}%
+	{Prof.\ Wolfgang Polifke, Ph.\,D.}%
+
+\tumlang@define@chair{OR}{MAWI}%
+	{Chair of Operations Research}%
+	{Lehrstuhl für Operations Research}%
+	{Prof.~Dr.\ Andreas\ S.\ Schulz}%
+
+% unknown options
+\DeclareOption*{}
+
+\ExecuteOptions{ngerman,TUM}
+\ProcessOptions\relax
+
+\endinput
