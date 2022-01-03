@@ -1,5 +1,5 @@
-%\documentclass[a4paper,german,10pt]{tumarticle}
-\documentclass[a4paper,english,10pt]{tumarticle}
+\documentclass[a4paper,german,10pt]{tumarticle}
+%\documentclass[a4paper,english,10pt,NET]{tumarticle}
 
 \usepackage[utf8]{inputenc}
 \usepackage{tumfonts}
@@ -16,22 +16,6 @@
 \usepackage{adjustbox}
 \usepackage{pdflscape}
 \usepackage{hyperref}
-\usepackage{listings}
-\lstset{ 
-  backgroundcolor=\color{white},
-  breakatwhitespace=false,
-  breaklines=true,
-  frame=single,
-  keepspaces=true,
-  keywordstyle=\color{blue},
-  language=Python,
-  numbers=left,
-  numbersep=5pt,
-  rulecolor=\color{black},
-  showspaces=false,
-  showstringspaces=false,
-  showtabs=false,
-}
 
 \usetikzlibrary{decorations.text}
 
@@ -55,18 +39,11 @@
 \widowpenalty=15000
 \setlength{\parindent}{0pt}
 
-
-
 \begin{document}
 
 \begin{center}
-	\bfseries\Large Validation Tool for \texttt{libmoeprlnc}\\[.5\baselineskip]
+	\bfseries\Large Title\\[.5\baselineskip]
 \end{center}
-\begin{center}
-	\small Group 6\\
-	\today
-\end{center}
-
 
 \setcounter{tocdepth}{1}
 \renewcommand{\contentsname}{Anlagen}
@@ -85,170 +62,17 @@
 \noindent%
 \footnotesize
 
-This paper proposes a test loop for validating the \texttt{libmoeprlnc} library with random packet
-generations and random order of packet creation, transmission and consumption. The test loop can be
-executed arbitrary many times to ensure enough testing variation with high probability.
+\ldots
 
 \end{abstract}
 
-\section{Introduction}
-
-The \texttt{libmoeprlnc} library implements the encoding and decoding of blocks (generations) in
-random linear network coding. It is based on the \texttt{libmoepgf} library, which in turn
-implements the required Galois Field operations.
-
-So far, \texttt{libmoeprlnc} does not have an adequate testing suit. Our goal is to develop a
-random testing environment for this library in order to validate the
-implementation. This document serves to outline our milestones and to provide a road map on how we
-want to achieve them.
-
-\section{Project Description}\label{sec:pd}
-
-Explicitly, the project aims at finding the particularly
-hard-to-find edge case bugs. In general, our tool runs in a repeating fashion and tests randomly
-generated data for a user-defined number of iterations, potentially indefinitely many.
+\ldots
 
 
-In each iteration, we want to simulate all steps of sender and receiver in a single-threaded
-application. The execution sequence of those individual steps - filling a block with packets,
-encoding, sending encoded packets, and finally decoding packets again - should be largely random.
-This allows to examine edge cases, such as when the encoder block is only partially filled, while
-the first coded packets are already being transmitted. Care must be taken with the decoder that it
-always has the option of eliminating linearly dependent packets and does not overflow if too many
-(potentially linear dependent) coded packets are transmitted in succession. The transmission of
-packets includes a loss probability with which the packet is dropped.
-
-We will use random bytes as input. By using completely randomly generated inputs that are
-independent of any network protocol, any kind of bias in the test inputs can be avoided.
-
-We define an iteration to be failed if the decoder is able to decode a block, but the decoded block
-is not equal to the block which was originally given to the encoder. If an iteration fails, the tool
-aborts and gives the user a dumb of the bytes that were used as input. These can then be used for
-debugging. To ensure reproducibility, all randomness in this project is generated using a seed.
-
-At the end of the execution, the tool will provide the user with appropriate statistics which
-summarize the test results. 
-
-In terms of evaluation of the testing tool, we can say that due to the random nature of our
-environment, the tool can theoretically cover a very large number of permutations of inputs and
-function call sequences if the user leaves the tool running long enough.
-
-
-\section{Goals and Proposed Method}\label{sec:milestones}
-
-The test program should be configurable by the following parameters which are passed over the
-command line:
-\begin{itemize}
-    \setlength{\itemsep}{1pt}
-	\setlength{\parskip}{0pt}
-	\setlength{\parsep}{0pt}
-    \item Number of iterations: How many packet blocks/generations should be sent
-    \item Packet size range: The packet size will be picked from within this given range
-    \item Packet generation size range
-    \item Loss rate: Probability of a coded packet to be dropped on purpose
-    \item Random seed to make the test reproducible
-    \item Verbosity level to switch between different levels of debug output e.g. almost none to
-    full prints of used generations
-\end{itemize}
-
-The pseudo code of the main test loop can be seen in Figure \ref{code}. We subdivide our projects
-into three main functions which are:
-
-\begin{itemize}
-    \setlength{\itemsep}{1pt}
-	\setlength{\parskip}{0pt}
-	\setlength{\parsep}{0pt}
-    \item \texttt{create(gen\_a)}: Takes the next random packet from the pre-generated generation
-    \texttt{gen\_a} and adds it to the encoder's block using \texttt{rlnc\_block\_add} if it is not
-    already full otherwise it performs nothing
-    \item \texttt{transmit(eps)}: With probability $\texttt{eps}$ the function returns instantly and
-    performs nothing, this corresponds to a packet loss. Otherwise it creates a coded packet using
-    \texttt{rlnc\_block\_encode}, puts it into the decoder block and calls
-    \texttt{rlnc\_block\_decode}. We can use the rank difference of the decoder block afterwards to
-    check whether or not the packet was linear dependent for our statistics. Furthermore, we can
-    keep track of how many packets have already been successfully sent to the decoder.
-    \item \texttt{consume(gen\_b)}: Checks if the next in-order packet is available by calling
-    \texttt{rlnc\_block\_get} on the decoder's block. If so it puts it into the \texttt{gen\_b}
-    which represents the decoded generation.
-\end{itemize}
-
-
-\begin{figure}[h]
-  \begin{lstlisting}[language=Python]
-random.seed(seed)
-for i in iterations:
-    gen_a = create_generation()
-    gen_b = empty_generation()
-    while gen_b is not full:
-        r = random.rand()
-        if r < 1/3:
-            create(gen_a)
-        else if 1/3 <= r < 2/3:
-            transmit(eps)
-        else:
-            consume(gen_b)
-    assert_equal(gen_a, gen_b)
-    update_statistics()
-\end{lstlisting}
-  \caption[]{Pseudo code of the test loop}
-  \label{code}
-\end{figure}
-
-The following statistically metrics should be recorded and continuously updated during the tests
-run:
-\begin{itemize}
-    \setlength{\itemsep}{1pt}
-	\setlength{\parskip}{0pt}
-	\setlength{\parsep}{0pt}
-    \item Amount of successful generations
-    \item Theoretical expected coded packets needed for decoding vs actual needed packets
-    \item Percentage of linear dependent packets
-\end{itemize}
-Should an iteration fail, a detailed log should be produced which contains the encoder and decoder
-blocks' data, the random generation data, the iteration number after which the test failed and all
-parameters used for the test configuration for reproducibility. This error log will should be stored
-in a file.
-
-\section{Time Plan}
-
-Figure \ref{timePlan} shows the approximated time plan for the proposed project and its milestones:
-\begin{itemize}
-    \setlength{\itemsep}{1pt}
-	\setlength{\parskip}{0pt}
-	\setlength{\parsep}{0pt}
-	\item MS 1: Parse command line parameters
-	\item MS 2: Implement random packet generation
-	\item MS 3: Implement \texttt{create}, \texttt{transmit} and \texttt{consume}
-	\item MS 4: Implement the test loop as proposed in Figure \ref{code}
-    \item MS 5: Prepare project presentation
-\end{itemize}
-
-
-\begin{figure}[htb]
-	\centering
-	\begin{ganttchart}[
-		hgrid,
-		vgrid,
-		x unit=0.13cm,
-		y unit chart=0.5cm,
-		time slot format=isodate
-	]{2022-01-01}{2022-04-15}
-		\gantttitlecalendar{month} \\
-		\ganttbar{Proposal: Draft version}{2022-01-01}{2022-01-09}\\
-		\ganttbar{Proposal: Final version}{2022-01-10}{2022-01-16}\\
-		\ganttbar{MS 1}{2022-02-01}{2022-02-14}\\
-		\ganttmilestone{Exam}{2022-02-21}\\
-		\ganttbar{MS 2}{2022-02-22}{2022-03-07}\\
-		\ganttbar{MS 3}{2022-03-08}{2022-03-21}\\
-		\ganttbar{MS 4}{2022-03-22}{2022-04-04}\\
-		\ganttbar{MS 5}{2022-04-05}{2022-04-10}\\
-		% project deadline is not included because of missing date
-		% presentation deadline is not included because of missing date
-	\end{ganttchart}
-	\caption{Project time plan}
-	\label{timePlan}
-\end{figure}
-
-
+% Uncomment for bibliography
+%\bibliography{lit}
+%\bibliographystyle{plain}
 
 \end{document}
+
+
