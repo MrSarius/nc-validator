@@ -69,46 +69,66 @@
 \noindent%
 \footnotesize
 
-This paper proposes a testing framework for validating the \texttt{libmoeprlnc} library.
-Therefore, it mainly uses randomly generated testing input.
+This paper proposes a testing framework for validating the \texttt{libmoeprlnc} library. Therefore,
+it mainly uses randomly generated testing input.
 
 \end{abstract}
 
 \section{Introduction}
-The \texttt{libmoeprlnc} library implements the encoding and decoding of blocks (generations) in random linear network coding. It is based on the \texttt{libmoepgf} library, which in turn implements the required Galois Field operations.
 
-So far, \texttt{libmoeprlnc} does not have an adequate testing suit. Our goal is to develop a testing environment for this library that mainly uses random test input in order to validate the implementation. This document serves to outline our milestones and to provide a roadmap on how we want to achieve them.
+The \texttt{libmoeprlnc} library implements the encoding and decoding of blocks (generations) in
+random linear network coding. It is based on the \texttt{libmoepgf} library, which in turn
+implements the required Galois Field operations.
+
+So far, \texttt{libmoeprlnc} does not have an adequate testing suit. Our goal is to develop a
+testing environment for this library that mainly uses random test input in order to validate the
+implementation. This document serves to outline our milestones and to provide a roadmap on how we
+want to achieve them.
 
 \section{Project Description}\label{sec:pd}
-The overall idea of this project is to develop a testing framework. 
-First, we want to address easy-to-find bugs for cases where there have been changes to the coding- or math library. 
-This will be achieved by about five basic unit tests, which validate the implementation's most basic functionalities by using handcrafted packets as input.
-For each test it will be checked if the library can encode and decode the blocks as expected.
-Those tests will be referred  to as 'handcrafted tests' in the following
 
-Since it is hard to find rare edge case bugs with fixed test cases, the core of our framework is a more complex test which runs in a repeating fashion and tests completely random generated data for a user-defined amount of iterations, potentially indefinitely many. With this method one can find even very rare bug cases when run long enough. Also having completely random packets which are independent of any network protocol will remove any kind of bias from the used testing input.
-In the following, this core test will be referred to as the 'loop test'.
+The overall idea of this project is to develop a testing framework. First, we want to address
+easy-to-find bugs for cases where there have been changes to the coding- or math library. This will
+be achieved by about five basic unit tests, which validate the implementation's most basic
+functionalities by using handcrafted packets as input. For each test it will be checked if the
+library can encode and decode the blocks as expected. Those tests will be referred  to as
+'handcrafted tests' in the following
 
-For this project, we define a test case to be failed if the decoder is able to decode a block but the decoded block is not equal to the block which was originally given to the encoder.
+Since it is hard to find rare edge case bugs with fixed test cases, the core of our framework is a
+more complex test which runs in a repeating fashion and tests completely random generated data for a
+user-defined amount of iterations, potentially indefinitely many. With this method one can find even
+very rare bug cases when run long enough. Also having completely random packets which are
+independent of any network protocol will remove any kind of bias from the used testing input. In the
+following, this core test will be referred to as the 'loop test'.
 
-At the end of the execution, the framework will provide the user with appropriate statistics which summarize the test results. 
+For this project, we define a test case to be failed if the decoder is able to decode a block but
+the decoded block is not equal to the block which was originally given to the encoder.
 
-If an iteration of the loop test fails, the framework aborts and gives the user a dumb of the bytes that were used as input. These can then be used for debugging.
+At the end of the execution, the framework will provide the user with appropriate statistics which
+summarize the test results. 
 
-To ensure reproducibility, the random bytes are generated using a seed. 
+If an iteration of the loop test fails, the framework aborts and gives the user a dumb of the bytes
+that were used as input. These can then be used for debugging. To ensure reproducibility, the random
+bytes are generated using a seed. 
 
 \section{Goals and Proposed Method}\label{sec:milestones}
 
 
-In order to achieve the overall outcome as defined in Section \ref{sec:pd} we define the following two main goals: The overall \textbf{testing framework} and the \textbf{statistics module}, where the former can be subdivided into the \textbf{encoding/decoding workflow}, the implementation of the \textbf{handcrafted tests} as well as the implementation of the \textbf{loop test}.
+In order to achieve the overall outcome as defined in Section \ref{sec:pd} we define the following
+two main goals: The overall \textbf{testing framework} and the \textbf{statistics module}, where the
+former can be subdivided into the \textbf{encoding/decoding workflow}, the implementation of the
+\textbf{handcrafted tests} as well as the implementation of the \textbf{loop test}.
 
-The base of our own testing environment should be a well known testing framework for \texttt{C}. 
-We decided to use \texttt{Check}\footnote{\url{https://libcheck.github.io/check/}}, because it is has a rather simple interface which makes it easy to use and extendable.
+The base of our own testing environment should be a well known testing framework for \texttt{C}. We
+decided to use \texttt{Check}\footnote{\url{https://libcheck.github.io/check/}}, because it is has a
+rather simple interface which makes it easy to use and extendable.
 
-It will be used for the execution of our handcrafted test as well as our loop test case.
-We plan to use packets captured in a real-world scenario as a basis for the handcrafted tests since the purpose of those tests is to cover common case bugs as explained in the section.
+It will be used for the execution of our handcrafted test as well as our loop test case. We plan to
+use packets captured in a real-world scenario as a basis for the handcrafted tests since the purpose
+of those tests is to cover common case bugs as explained in the section.
 
-The loop test should be configurable by the following parameters which are passed over the command line:
+The loop test should be configurable by the following parameters which are passed over the command
+line:
 \begin{itemize}
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
@@ -120,7 +140,9 @@ The loop test should be configurable by the following parameters which are passe
     \item Random seed to make the test reproducible
 \end{itemize}
 
-The second major goal of the project is the statistics module. Its purpose is to record interesting statistics during the random data test. The following metrics should be recorded as a mean over all previous random generations:
+The second major goal of the project is the statistics module. Its purpose is to record interesting
+statistics during the random data test. The following metrics should be recorded as a mean over all
+previous random generations:
 \begin{itemize}
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
@@ -130,7 +152,10 @@ The second major goal of the project is the statistics module. Its purpose is to
     \item Theoretical expected coded packets needed for decoding vs actual needed packets
     \item Percentage of linear dependent packets
 \end{itemize}
-Whenever the decoding of a generation fails, a detailed log should be produced which contains the whole generation's data, the iteration number after which the test failed and all parameters used for the test configuration for reproducible. This log will probably be stored in the form of a text or csv file in the user's working directory.
+Whenever the decoding of a generation fails, a detailed log should be produced which contains the
+whole generation's data, the iteration number after which the test failed and all parameters used
+for the test configuration for reproducible. This log will probably be stored in the form of a text
+or csv file in the user's working directory.
 
 \section{Time Plan}
 
@@ -139,7 +164,8 @@ Figure \ref{timePlan} shows the approximated time plan for the proposed project 
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
 	\setlength{\parsep}{0pt}
-    \item MS 1: Implementation of the encoding/decoding workflow with random packet loss and the thereafter check whether the packets match
+    \item MS 1: Implementation of the encoding/decoding workflow with random packet loss and the
+    thereafter check whether the packets match
     \item MS 2: Implementation of static packet test cases
     \item MS 3: Implementation of the random loop
     \item MS 4: Implementation of the statistic module
