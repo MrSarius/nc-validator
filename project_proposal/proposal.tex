@@ -69,20 +69,133 @@
 \noindent%
 \footnotesize
 
-\ldots
-% TODO: add the slides in own words
+This paper proposes a testing framework for validating the \texttt{libmoeprlnc} library.
+Therefore, it mainly uses randomly generated testing input.
 
 \end{abstract}
 
-\ldots
-% TODO: specify what exactly we want to achieve in our testing framework and how we want to achieve
-% it
+\section{Introduction}
+The \texttt{libmoeprlnc} library implements the encoding and decoding of blocks (generations) in random linear network coding. It is based on the \texttt{libmoepgf} library, which in turn implements the required Galois Field operations.
+
+So far, \texttt{libmoeprlnc} does not have an adequate testing suit. Our goal is to develop a testing environment for this library that mainly uses random test input in order to validate the implementation. This document serves to outline our milestones and to provide a roadmap on how we want to achieve them.
+% motivation: moeplib currently has no testing suite, probably tested with hand cases -> no edge case coverage -> perfect with random tests
+% -> we want to create a testing env. for libmoep which also covers rare edge cases
+% purpose of the document: outline the projects goals, how we want to achieve them and propose a roadmap
+
+\section{Project Description}\label{sec:pd}
+The overall idea of this project is to develop a testing framework. 
+First, we want to address easy-to-find bugs for cases where there have been changes to the coding- or math library. 
+This will be achieved by about five basic unit tests, which validate the implementation's most basic functionalities by using handcrafted packets as input.
+For each test it will be checked if the library can encode and decode the blocks as expected.
+Those tests will be referred  to as 'handcrafted tests' in the following
+
+Since it is hard to find rare edge case bugs with fixed test cases, the core of our framework is a more complex test which runs in a repeating fashion and tests completely random generated data for a user-defined amount of iterations, potentially indefinitely many. With this method one can find even very rare bug cases when run long enough. Also having completely random packets which are independent of any network protocol will remove any kind of bias from the used testing input.
+In the following, this core test will be referred to as the 'loop test'.
+
+% Definition of failed test
+For this project, we define a test case to be failed if the decoder is able to decode a block but the decoded block is not equal to the block which was originally given to the encoder.
+
+%bhier nur beschreibend... welche statistiken genau ausgegeben werden kommt dann unten
+At the end of the execution, the framework will provide the user with appropriate statistics which summarize the test results. 
+
+If an iteration of the loop test fails, the framework aborts and gives the user a dumb of the bytes that were used as input. These can then be used for debugging.
+
+To ensure reproducibility, the random bytes are generated using a seed. 
+
+\section{Goals and Proposed Method}\label{sec:milestones} % Milestones
+% List of Goals and how we want to achieve
+% welches unit testing framework liegt dem ganze zu grund?
+% Wie planen wir die oben angesprochenen "benutzerdefinierten Werte" an das framework zu übergeben? -> per commandline
 
 
-% Uncomment for bibliography
-%\bibliography{lit}
-%\bibliographystyle{plain}
+
+% overall framework -> unit tests, cmd parameters ()
+% definition failed if -> decoder can decode but decodes wrong content
+% statistics module: only used for while true test, percentage of successsful encodings, theoretical expected packets needed for decoding vs actual needed packets for decoding (not time), (decoding prob.? -> loss prob.), detailed error log with parameters, send packet and #iteration when it failed
+
+% TODO: maybe we can define the "handcrafted" tests with files, like json or yaml with one field being the hexdump of a generation
+In order to achieve the overall outcome as defined in Section \ref{sec:pd} we define the following two main goals: The overall \textbf{testing framework} and the \textbf{statistics module}, where the former can be subdivided into the \textbf{encoding/decoding workflow}, the implementation of the \textbf{handcrafted tests} as well as the implementation of the \textbf{loop test}.
+
+The base of our own testing environment should be a well known testing framework for \texttt{C}. 
+We decided to use \texttt{Check}\footnote{\url{https://libcheck.github.io/check/}}, because it is has a rather simple interface which makes it easy to use and extendable.
+
+It will be used for the execution of our handcrafted test as well as our loop test case.
+We plan to use packets captured in a real-world scenario as a basis for the handcrafted tests. 
+%TODO hier fehlt ggf. noch eine Begründung, warum wir hier nicht auch einfach random bytes verwenden. Vielleicht 'This improves readability or "debuggability" of the tests'?
+
+% while true -> harder to find bugs which only happen in edge cases -> thus use completely random generated packets which do not follow any protocol to avoid protocol biases
+The loop test should be configurable by the following parameters which are passed over the command line:
+\begin{itemize}
+    \setlength{\itemsep}{1pt}
+	\setlength{\parskip}{0pt}
+	\setlength{\parsep}{0pt}
+    \item Number of iterations: How many packet blocks/generations should be sent
+    \item Packet size range: The packet size will be picked from within this given range
+    \item Packet generation size range
+    \item Loss rate: Probability of a coded packet to be dropped on purpose
+    \item Random seed to make the test reproducible
+\end{itemize}
+
+The second major goal of the project is the statistics module. Its purpose is to record interesting statistics during the random data test. The following metrics should be recorded as a mean over all previous random generations: %for each generation by the module:
+\begin{itemize}
+    \setlength{\itemsep}{1pt}
+	\setlength{\parskip}{0pt}
+	\setlength{\parsep}{0pt}
+    %\item Flag of whether the encoding has been successful
+    %\item Number of packets needed for encoding
+    \item Percentage of successful generation decodings
+    \item Amount of successful generations
+    \item Theoretical expected coded packets needed for decoding vs actual needed packets
+    \item Percentage of linear dependent packets
+\end{itemize}
+Whenever the decoding of a generation fails, a detailed log should be produced which contains the whole generation's data, the iteration number after which the test failed and all parameters used for the test configuration for reproducible. This log will probably be stored in the form of a text or csv file in the user's working directory.
+
+% Values of interest could be the number of redundant packets needed
+% Verify our theoretic view on randomly occurring linear dependencies
+
+
+
+%\pagebreak
+\section{Time Plan}
+% milestones
+% - Implementation of the encoding, packet loss, decoding workflow and the thereafter check of the packets integrity/equality
+% - Implementation of static packet checks
+% - Implementation of the random loop with seed
+% - Implementation of the statistic module
+
+
+Figure \ref{timePlan} shows the approximated time plan for the proposed project and its milestones:
+\begin{itemize}
+    \setlength{\itemsep}{1pt}
+	\setlength{\parskip}{0pt}
+	\setlength{\parsep}{0pt}
+    \item MS 1: Implementation of the encoding/decoding workflow with random packet loss and the thereafter check whether the packets match
+    \item MS 2: Implementation of static packet test cases
+    \item MS 3: Implementation of the random loop
+    \item MS 4: Implementation of the statistic module
+\end{itemize}
+
+
+\begin{figure}[htb]
+\centering
+\begin{ganttchart}[
+hgrid,
+vgrid,
+x unit=0.15cm,
+y unit chart=0.5cm,
+time slot format=isodate
+]{2022-01-01}{2022-03-30}
+\gantttitlecalendar{month} \\
+\ganttbar{Proposal: Draft version}{2022-01-01}{2022-01-09}\\
+\ganttbar{Proposal: Final version}{2022-01-10}{2022-01-16}\\
+\ganttbar{MS 1}{2022-01-17}{2022-01-31}\\
+\ganttbar{MS 2}{2022-02-01}{2022-02-07}\\
+\ganttbar{MS 3}{2022-02-08}{2022-02-14}\\
+\ganttmilestone{Exam}{2022-02-21}\\
+\ganttbar{MS 4}{2022-02-22}{2022-03-07}\\
+\end{ganttchart}
+\caption{Project time plan}\label{timePlan}
+\end{figure}
 
 \end{document}
-
 
