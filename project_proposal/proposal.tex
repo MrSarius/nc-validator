@@ -63,7 +63,7 @@
 	\bfseries\Large Validation Tool for \texttt{libmoeprlnc}\\[.5\baselineskip]
 \end{center}
 \begin{center}
-	\small Group 6\\ % Tobias Jülg and Ben Riegel % alphabetically sorted after last name
+	\small Group 6\\
 	\today
 \end{center}
 
@@ -85,7 +85,9 @@
 \noindent%
 \footnotesize
 
-This paper proposes a test loop for validating the \texttt{libmoeprlnc} library with random packet generations and random order of packet creation, transmission and consumption. The test loop can be executed arbitrary many times to ensure enough testing variation with high probability.
+This paper proposes a test loop for validating the \texttt{libmoeprlnc} library with random packet
+generations and random order of packet creation, transmission and consumption. The test loop can be
+executed arbitrary many times to ensure enough testing variation with high probability.
 
 \end{abstract}
 
@@ -101,19 +103,31 @@ implementation. This document serves to outline our milestones and to provide a 
 want to achieve them.
 
 \section{Project Description}\label{sec:pd}
-Explicitly, the project aims at finding the particularly hard-to-find edge case bugs. In general, our tool runs in a repeating fashion and tests randomly generated data for a user-defined number of iterations, potentially indefinitely many.
+
+Explicitly, the project aims at finding the particularly
+hard-to-find edge case bugs. In general, our tool runs in a repeating fashion and tests randomly
+generated data for a user-defined number of iterations, potentially indefinitely many.
 
 
-In each iteration, we want to simulate all steps of sender and receiver in a single-threaded application. 
-The execution sequence of those individual steps - filling a block with packets, encoding, sending encoded packets, and finally decoding packets again - should be largely random. 
-This allows to examine edge cases, such as when the encoder block is only partially filled, while the first coded packets are already being transmitted. Care must be taken with the decoder that it always has the option of eliminating linearly dependent packets and does not overflow if too many (potentially linear dependent) coded packets are transmitted in succession. 
-The transmission of packets includes a loss probability with which the packet is dropped.
+In each iteration, we want to simulate all steps of sender and receiver in a single-threaded
+application. The execution sequence of those individual steps - filling a block with packets,
+encoding, sending encoded packets, and finally decoding packets again - should be largely random.
+This allows to examine edge cases, such as when the encoder block is only partially filled, while
+the first coded packets are already being transmitted. Care must be taken with the decoder that it
+always has the option of eliminating linearly dependent packets and does not overflow if too many
+(potentially linear dependent) coded packets are transmitted in succession. The transmission of
+packets includes a loss probability with which the packet is dropped.
 
-We will use random bytes as input. By using completely randomly generated inputs that are independent of any network protocol, any kind of bias in the test inputs can be avoided.
+We will use random bytes as input. By using completely randomly generated inputs that are
+independent of any network protocol, any kind of bias in the test inputs can be avoided.
 
-We define an iteration to be failed if the decoder is able to decode a block, but the decoded block is not equal to the block which was originally given to the encoder. If an iteration fails, the tool aborts and gives the user a dumb of the bytes that were used as input. These can then be used for debugging. To ensure reproducibility, all randomness in this project is generated using a seed.
+We define an iteration to be failed if the decoder is able to decode a block, but the decoded block
+is not equal to the block which was originally given to the encoder. If an iteration fails, the tool
+aborts and gives the user a dumb of the bytes that were used as input. These can then be used for
+debugging. To ensure reproducibility, all randomness in this project is generated using a seed.
 
-At the end of the execution, the tool will provide the user with appropriate statistics which summarize the test results. 
+At the end of the execution, the tool will provide the user with appropriate statistics which
+summarize the test results. 
 
 In terms of evaluation of the testing tool, we can say that due to the random nature of our
 environment, the tool can theoretically cover a very large number of permutations of inputs and
@@ -122,8 +136,8 @@ function call sequences if the user leaves the tool running long enough.
 
 \section{Goals and Proposed Method}\label{sec:milestones}
 
-The test program should be configurable by the following parameters which are passed over the command
-line:
+The test program should be configurable by the following parameters which are passed over the
+command line:
 \begin{itemize}
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
@@ -133,19 +147,29 @@ line:
     \item Packet generation size range
     \item Loss rate: Probability of a coded packet to be dropped on purpose
     \item Random seed to make the test reproducible
-    \item Verbosity level to switch between different levels of debug output e.g. almost none to full prints of used generations
+    \item Verbosity level to switch between different levels of debug output e.g. almost none to
+    full prints of used generations
 \end{itemize}
 
-The pseudo code of the main test loop can be seen in Figure \ref{code}. We subdivide our projects into three main functions which are:
+The pseudo code of the main test loop can be seen in Figure \ref{code}. We subdivide our projects
+into three main functions which are:
 
 \begin{itemize}
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
 	\setlength{\parsep}{0pt}
-    \item \texttt{create(gen\_a)}: Takes the next random packet from the pre-generated generation \texttt{gen\_a} and adds it to the encoder's block using \texttt{rlnc\_block\_add} if it is not already full otherwise it performs nothing
-    \item \texttt{transmit(eps)}: With probability $\texttt{eps}$ the function returns instantly and performs nothing, this corresponds to a packet loss. Otherwise it creates a coded packet using \texttt{rlnc\_block\_encode}, puts it into the decoder block and calls \texttt{rlnc\_block\_decode}. We can use the rank difference of the decoder block afterwards to check whether or not the packet was linear dependent for our statistics. Furthermore, we can keep track of how many packets have already been successfully sent to the decoder.
-    \item \texttt{consume(gen\_b)}: Checks if the next in-order packet is available by calling \texttt{rlnc\_block\_get} on the decoder's block. If so it puts it into the \texttt{gen\_b} which represents the decoded generation.
-    %The inner loop will continue
+    \item \texttt{create(gen\_a)}: Takes the next random packet from the pre-generated generation
+    \texttt{gen\_a} and adds it to the encoder's block using \texttt{rlnc\_block\_add} if it is not
+    already full otherwise it performs nothing
+    \item \texttt{transmit(eps)}: With probability $\texttt{eps}$ the function returns instantly and
+    performs nothing, this corresponds to a packet loss. Otherwise it creates a coded packet using
+    \texttt{rlnc\_block\_encode}, puts it into the decoder block and calls
+    \texttt{rlnc\_block\_decode}. We can use the rank difference of the decoder block afterwards to
+    check whether or not the packet was linear dependent for our statistics. Furthermore, we can
+    keep track of how many packets have already been successfully sent to the decoder.
+    \item \texttt{consume(gen\_b)}: Checks if the next in-order packet is available by calling
+    \texttt{rlnc\_block\_get} on the decoder's block. If so it puts it into the \texttt{gen\_b}
+    which represents the decoded generation.
 \end{itemize}
 
 
@@ -170,7 +194,8 @@ for i in iterations:
   \label{code}
 \end{figure}
 
-The following statistically metrics should be recorded and continuously updated during the tests run:
+The following statistically metrics should be recorded and continuously updated during the tests
+run:
 \begin{itemize}
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
@@ -179,8 +204,10 @@ The following statistically metrics should be recorded and continuously updated 
     \item Theoretical expected coded packets needed for decoding vs actual needed packets
     \item Percentage of linear dependent packets
 \end{itemize}
-Should an iteration fail, a detailed log should be produced which contains the encoder and decoder blocks' data, the random generation data, the iteration number after which the test failed and all parameters used
-for the test configuration for reproducibility. This error log will should be stored in a file.
+Should an iteration fail, a detailed log should be produced which contains the encoder and decoder
+blocks' data, the random generation data, the iteration number after which the test failed and all
+parameters used for the test configuration for reproducibility. This error log will should be stored
+in a file.
 
 \section{Time Plan}
 
