@@ -16,6 +16,22 @@
 \usepackage{adjustbox}
 \usepackage{pdflscape}
 \usepackage{hyperref}
+\usepackage{listings}
+\lstset{ 
+  backgroundcolor=\color{white},
+  breakatwhitespace=false,
+  breaklines=true,
+  frame=single,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  language=Python,
+  numbers=left,
+  numbersep=5pt,
+  rulecolor=\color{black},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+}
 
 \usetikzlibrary{decorations.text}
 
@@ -69,8 +85,7 @@
 \noindent%
 \footnotesize
 
-This paper proposes a testing framework for validating the \texttt{libmoeprlnc} library. Therefore,
-it mainly uses randomly generated testing input.
+This paper proposes a test loop for validating the \texttt{libmoeprlnc} library with random packet generations and random order of packet creation, transmission and consumption. The test loop can be executed arbitrary many times to ensure enough testing variation with high probability.
 
 \end{abstract}
 
@@ -81,53 +96,33 @@ random linear network coding. It is based on the \texttt{libmoepgf} library, whi
 implements the required Galois Field operations.
 
 So far, \texttt{libmoeprlnc} does not have an adequate testing suit. Our goal is to develop a
-testing environment for this library that mainly uses random test input in order to validate the
-implementation. This document serves to outline our milestones and to provide a roadmap on how we
+random testing environment for this library in order to validate the
+implementation. This document serves to outline our milestones and to provide a road map on how we
 want to achieve them.
 
 \section{Project Description}\label{sec:pd}
+Explicitly, the project aims at finding the particularly hard-to-find edge case bugs. In general, our tool runs in a repeating fashion and tests randomly generated data for a user-defined number of iterations, potentially indefinitely many.
 
-The overall idea of this project is to develop a testing framework. First, we want to address
-easy-to-find bugs for cases where there have been changes to the coding- or math library. This will
-be achieved by about five basic unit tests, which validate the implementation's most basic
-functionalities by using handcrafted packets as input. For each test it will be checked if the
-library can encode and decode the blocks as expected. Those tests will be referred  to as
-'handcrafted tests' in the following
 
-Since it is hard to find rare edge case bugs with fixed test cases, the core of our framework is a
-more complex test which runs in a repeating fashion and tests completely random generated data for a
-user-defined amount of iterations, potentially indefinitely many. With this method one can find even
-very rare bug cases when run long enough. Also having completely random packets which are
-independent of any network protocol will remove any kind of bias from the used testing input. In the
-following, this core test will be referred to as the 'loop test'.
+In each iteration, we want to simulate all steps of sender and receiver in a single-threaded application. 
+The execution sequence of those individual steps - filling a block with packets, encoding, sending encoded packets, and finally decoding packets again - should be largely random. 
+This allows to examine edge cases, such as when the encoder block is only partially filled, while the first coded packets are already being transmitted. Care must be taken with the decoder that it always has the option of eliminating linearly dependent packets and does not overflow if too many (potentially linear dependent) coded packets are transmitted in succession. 
+The transmission of packets includes a loss probability with which the packet is dropped.
 
-For this project, we define a test case to be failed if the decoder is able to decode a block but
-the decoded block is not equal to the block which was originally given to the encoder.
+We will use random bytes as input. By using completely randomly generated inputs that are independent of any network protocol, any kind of bias in the test inputs can be avoided.
 
-At the end of the execution, the framework will provide the user with appropriate statistics which
-summarize the test results. 
+We define an iteration to be failed if the decoder is able to decode a block, but the decoded block is not equal to the block which was originally given to the encoder. If an iteration fails, the tool aborts and gives the user a dumb of the bytes that were used as input. These can then be used for debugging. To ensure reproducibility, all randomness in this project is generated using a seed.
 
-If an iteration of the loop test fails, the framework aborts and gives the user a dumb of the bytes
-that were used as input. These can then be used for debugging. To ensure reproducibility, the random
-bytes are generated using a seed. 
+At the end of the execution, the tool will provide the user with appropriate statistics which summarize the test results. 
+
+In terms of evaluation of the testing tool, we can say that due to the random nature of our
+environment, the tool can theoretically cover a very large number of permutations of inputs and
+function call sequences if the user leaves the tool running long enough.
+
 
 \section{Goals and Proposed Method}\label{sec:milestones}
 
-
-In order to achieve the overall outcome as defined in Section \ref{sec:pd} we define the following
-two main goals: The overall \textbf{testing framework} and the \textbf{statistics module}, where the
-former can be subdivided into the \textbf{encoding/decoding workflow}, the implementation of the
-\textbf{handcrafted tests} as well as the implementation of the \textbf{loop test}.
-
-The base of our own testing environment should be a well known testing framework for \texttt{C}. We
-decided to use \texttt{Check}\footnote{\url{https://libcheck.github.io/check/}}, because it is has a
-rather simple interface which makes it easy to use and extendable.
-
-It will be used for the execution of our handcrafted test as well as our loop test case. We plan to
-use packets captured in a real-world scenario as a basis for the handcrafted tests since the purpose
-of those tests is to cover common case bugs as explained in the section.
-
-The loop test should be configurable by the following parameters which are passed over the command
+The test program should be configurable by the following parameters which are passed over the command
 line:
 \begin{itemize}
     \setlength{\itemsep}{1pt}
@@ -138,24 +133,54 @@ line:
     \item Packet generation size range
     \item Loss rate: Probability of a coded packet to be dropped on purpose
     \item Random seed to make the test reproducible
+    \item Verbosity level to switch between different levels of debug output e.g. almost none to full prints of used generations
 \end{itemize}
 
-The second major goal of the project is the statistics module. Its purpose is to record interesting
-statistics during the random data test. The following metrics should be recorded as a mean over all
-previous random generations:
+The pseudo code of the main test loop can be seen in Figure \ref{code}. We subdivide our projects into three main functions which are:
+
 \begin{itemize}
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
 	\setlength{\parsep}{0pt}
-    \item Percentage of successful generation decodings
+    \item \texttt{create(gen\_a)}: Takes the next random packet from the pre-generated generation \texttt{gen\_a} and adds it to the encoder's block using \texttt{rlnc\_block\_add} if it is not already full otherwise it performs nothing
+    \item \texttt{transmit(eps)}: With probability $\texttt{eps}$ the function returns instantly and performs nothing, this corresponds to a packet loss. Otherwise it creates a coded packet using \texttt{rlnc\_block\_encode}, puts it into the decoder block and calls \texttt{rlnc\_block\_decode}. We can use the rank difference of the decoder block afterwards to check whether or not the packet was linear dependent for our statistics. Furthermore, we can keep track of how many packets have already been successfully sent to the decoder.
+    \item \texttt{consume(gen\_b)}: Checks if the next in-order packet is available by calling \texttt{rlnc\_block\_get} on the decoder's block. If so it puts it into the \texttt{gen\_b} which represents the decoded generation.
+    %The inner loop will continue
+\end{itemize}
+
+
+\begin{figure}[h]
+  \begin{lstlisting}[language=Python]
+random.seed(seed)
+for i in iterations:
+    gen_a = create_generation()
+    gen_b = empty_generation()
+    while gen_b is not full:
+        r = random.rand()
+        if r < 1/3:
+            create(gen_a)
+        else if 1/3 <= r < 2/3:
+            transmit(eps)
+        else:
+            consume(gen_b)
+    assert_equal(gen_a, gen_b)
+    update_statistics()
+\end{lstlisting}
+  \caption[]{Pseudo code of the test loop}
+  \label{code}
+\end{figure}
+
+The following statistically metrics should be recorded and continuously updated during the tests run:
+\begin{itemize}
+    \setlength{\itemsep}{1pt}
+	\setlength{\parskip}{0pt}
+	\setlength{\parsep}{0pt}
     \item Amount of successful generations
     \item Theoretical expected coded packets needed for decoding vs actual needed packets
     \item Percentage of linear dependent packets
 \end{itemize}
-Whenever the decoding of a generation fails, a detailed log should be produced which contains the
-whole generation's data, the iteration number after which the test failed and all parameters used
-for the test configuration for reproducible. This log will probably be stored in the form of a text
-or csv file in the user's working directory.
+Should an iteration fail, a detailed log should be produced which contains the encoder and decoder blocks' data, the random generation data, the iteration number after which the test failed and all parameters used
+for the test configuration for reproducibility. This error log will should be stored in a file.
 
 \section{Time Plan}
 
@@ -164,11 +189,11 @@ Figure \ref{timePlan} shows the approximated time plan for the proposed project 
     \setlength{\itemsep}{1pt}
 	\setlength{\parskip}{0pt}
 	\setlength{\parsep}{0pt}
-    \item MS 1: Implementation of the encoding/decoding workflow with random packet loss and the
-    thereafter check whether the packets match
-    \item MS 2: Implementation of static packet test cases
-    \item MS 3: Implementation of the random loop
-    \item MS 4: Implementation of the statistic module
+	\item MS 1: Parse command line parameters
+	\item MS 2: Implement random packet generation
+	\item MS 3: Implement \texttt{create}, \texttt{transmit} and \texttt{consume}
+	\item MS 4: Implement the test loop as proposed in Figure \ref{code}
+    \item MS 5: Prepare project presentation
 \end{itemize}
 
 
@@ -177,18 +202,19 @@ Figure \ref{timePlan} shows the approximated time plan for the proposed project 
 	\begin{ganttchart}[
 		hgrid,
 		vgrid,
-		x unit=0.15cm,
+		x unit=0.13cm,
 		y unit chart=0.5cm,
 		time slot format=isodate
-	]{2022-01-01}{2022-03-30}
+	]{2022-01-01}{2022-04-15}
 		\gantttitlecalendar{month} \\
 		\ganttbar{Proposal: Draft version}{2022-01-01}{2022-01-09}\\
 		\ganttbar{Proposal: Final version}{2022-01-10}{2022-01-16}\\
-		\ganttbar{MS 1}{2022-01-17}{2022-01-31}\\
-		\ganttbar{MS 2}{2022-02-01}{2022-02-07}\\
-		\ganttbar{MS 3}{2022-02-08}{2022-02-14}\\
+		\ganttbar{MS 1}{2022-02-01}{2022-02-14}\\
 		\ganttmilestone{Exam}{2022-02-21}\\
-		\ganttbar{MS 4}{2022-02-22}{2022-03-07}
+		\ganttbar{MS 2}{2022-02-22}{2022-03-07}\\
+		\ganttbar{MS 3}{2022-03-08}{2022-03-21}\\
+		\ganttbar{MS 4}{2022-03-22}{2022-04-04}\\
+		\ganttbar{MS 5}{2022-04-05}{2022-04-10}\\
 		% project deadline is not included because of missing date
 		% presentation deadline is not included because of missing date
 	\end{ganttchart}
@@ -196,5 +222,6 @@ Figure \ref{timePlan} shows the approximated time plan for the proposed project 
 	\label{timePlan}
 \end{figure}
 
-\end{document}
 
+
+\end{document}
