@@ -1,1 +1,5 @@
 // TODO: Logger
+
+void log(){
+
+}
