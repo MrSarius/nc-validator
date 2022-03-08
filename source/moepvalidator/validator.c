@@ -18,10 +18,8 @@ struct generation{
     size_t packet_size;
     size_t n_packets;
     size_t generation_size;
-    // old: 2D array: generation_size x packet_size
+    // size: n_packets x packet_size
     char *data;
-    // size_t packet_size;
-    // size_t generation_size;
 };
 
 void free_gen(struct generation *gen){
@@ -35,14 +33,14 @@ void set_seed(unsigned int seed){
 
 float randf(){
     long int r = random();
-    return (float)r / (RAND_MAX+1);
+    return (float)r / (RAND_MAX);
 
 }
 
 int randint(int from, int to){
     long int r = random();
     double diff = to - from;
-    return (int) (diff*r/(RAND_MAX+1) + from);
+    return (int) (diff*r/(RAND_MAX) + from);
 }
 u8 randbyte(){
     return (u8) randint(0, 255);
@@ -54,40 +52,8 @@ void randbytes(size_t n, char *a){
     }
 }
 
-// struct generation* create_generation(u64 packet_size, u64 generation_size){
-//     size_t len = packet_size*generation_size;
-//     char *data = malloc(sizeof(char)*len);
-//     randbytes((size_t)(packet_size*generation_size), data);
-//     struct generation *gen_new = malloc(sizeof(struct generation));
-//     gen_new->data = data;
-//     gen_new->n_packets = generation_size;
-//     gen_new->packet_size = packet_size;
-//     gen_new->generation_size = generation_size;
-//     // *gen_new = {packet_size, generation_size, data};
-//     // *gen = gen_new;
-//     return gen_new;
 
-//     // return data;
-//     // this should return a rlnc block
-//     // rlnc_block_t gen_a = empty_generation(packet_size, generation_size);
-//     // rlnc_block_add(gen_a, pv, a, len);
-// }
 
-struct generation* create_generation(u64 packet_size, u64 generation_size){
-    size_t len = packet_size*generation_size;
-    struct generation *gen_new = empty_generation(packet_size, generation_size);
-    randbytes(len, gen_new->data);
-    gen_new->n_packets = generation_size;
-    return gen_new;
-
-    // return data;
-    // this should return a rlnc block
-    // rlnc_block_t gen_a = empty_generation(packet_size, generation_size);
-    // rlnc_block_add(gen_a, pv, a, len);
-}
-
-// void assert_equal(char *a, char *b, size_t n){
-// }
 
 bool assert_equal(struct generation *gen_a, struct generation *gen_b){
     if(gen_a->packet_size != gen_b->packet_size || gen_a->n_packets != gen_b->n_packets)
@@ -98,9 +64,11 @@ bool assert_equal(struct generation *gen_a, struct generation *gen_b){
         return false;
 }
 
+void assert(bool exp, char *msg){
+    // TODO: do some logging if exp is false -> should not happen
+}
+
 struct generation* empty_generation(u64 packet_size, u64 generation_size){
-    // TODO: field size as parameter
-    // return rlnc_block_init((int)generation_size, (size_t)(generation_size*packet_size), (size_t) packet_size, MOEPGF256);
     size_t len = packet_size*generation_size;
     char *data = malloc(sizeof(char)*len);
     struct generation *gen_new = malloc(sizeof(struct generation));
@@ -111,51 +79,93 @@ struct generation* empty_generation(u64 packet_size, u64 generation_size){
     return gen_new;
 }
 
-void create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a){
+struct generation* create_generation(u64 packet_size, u64 generation_size){
+    size_t len = packet_size*generation_size;
+    struct generation *gen_new = empty_generation(packet_size, generation_size);
+    randbytes(len, gen_new->data);
+    gen_new->n_packets = generation_size;
+    return gen_new;
 
 }
 
-void transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b){
-
+int create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a, size_t ith){
+    size_t ps = gen_a->packet_size;
+    return rlnc_block_add(rlnc_block_a, (int)ith, (const uint8_t*) (gen_a->data + ith*ps), ps);
 }
 
-void consume_at_B(rlnc_block_t rlnc_block_b){
-    // todo statistics: log if new block could be decoded
-    // TODO: how to return a decoded block
+int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b, size_t packet_size){
+    uint8_t *dst = malloc(sizeof(uint8_t)*packet_size);
 
+    ssize_t re = rlnc_block_encode(rlnc_block_a, dst, packet_size, 0);
+    assert(re == packet_size, "");
+    float r = randf();
+    if(r <= loss_rate){
+        // simulated packet loss
+        free(dst);
+        return -1;
+    }
+    re = rlnc_block_decode(rlnc_block_b, dst, packet_size);
+    // TODO check the return values
+
+    // moeprln copies data so we have to free it
+    free(dst);
+    return 0;
+}
+
+int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets){
+    ssize_t	re = rlnc_block_get(rlnc_block_b, (int)consumed_packets, (uint8_t*) (gen_b->data + consumed_packets*packet_size), packet_size);
+    if(re == 0){
+        // no new packet could be decoded
+        return -1;
+    }
+    assert(re == packet_size, "");
+    return 0;
 }
 
 
-void validate(u64 iterations, u64 packet_size, u64 generation_size, float loss_rate, unsigned int seed){
+int validate(u64 iterations, u64 packet_size, u64 generation_size, float loss_rate, unsigned int seed){
     // TODO: add loop
     struct generation *gen_a;
     struct generation *gen_b;
     float r;
     rlnc_block_t rlnc_block_a;
     rlnc_block_t rlnc_block_b;
+    size_t created_packets; 
+    size_t consumed_packets; 
+    // TODO: maybe randomly choose gftype
+    enum MOEPGF_TYPE gftype = MOEPGF256;
+    int re_val;
 
     set_seed(seed);
-    for (u64 i = 0; i < iterations; i++)
+    for (size_t i = 0; i < iterations; i++)
     {
-        /* code */
-        // TODO: maybe randomly choose gftype
+        created_packets = 0;
+        consumed_packets = 0;
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
-        rlnc_block_a = rlnc_block_init((int)generation_size, (size_t)(generation_size*packet_size), (size_t) packet_size, MOEPGF256);
-        rlnc_block_b = rlnc_block_init((int)generation_size, (size_t)(generation_size*packet_size), (size_t) packet_size, MOEPGF256);
+        rlnc_block_a = rlnc_block_init((int)generation_size, (size_t)(generation_size*packet_size), (size_t) packet_size, gftype);
+        rlnc_block_b = rlnc_block_init((int)generation_size, (size_t)(generation_size*packet_size), (size_t) packet_size, gftype);
         while (gen_a->n_packets != gen_b->n_packets)
         {
             r = randf();
-            if (r < 1/3)
+            if (r < 1/3 && created_packets < generation_size)
             {
-                create(gen_a, rlnc_block_a);
+                re_val = create_at_A(gen_a, rlnc_block_a, created_packets++);
             }else if (r < 1/3 && r < 2/3)
             {
-                transmit(loss_rate);
+                re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, packet_size);
             }else{
-                consume(rlnc_block_b);
+                re_val = consume_at_B(rlnc_block_b, gen_b, packet_size, consumed_packets);
+                // TODO statistics
+                if(re_val != 0){
+                    // the next packet could not be decoded
+                }else{
+                    // the next packet could be decoded and is in gen_b
+                    consumed_packets++;
+                }
             }
 
+            // TODO: log rank of the matrix
         }
         
         if(!assert_equal(gen_a, gen_b)){
@@ -166,6 +176,11 @@ void validate(u64 iterations, u64 packet_size, u64 generation_size, float loss_r
 
         free_gen(gen_a);
         free_gen(gen_b);
+        // TODO: maybe we can randomly reuse the buffer by resetting it instead of freeing and allocating again and again
+        // rlnc_block_reset(rlnc_block_a);
+        // rlnc_block_reset(rlnc_block_b);
+        rlnc_block_free(rlnc_block_a);
+        rlnc_block_free(rlnc_block_b);
     }
     return 0;
     
