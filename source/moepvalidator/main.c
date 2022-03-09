@@ -8,49 +8,45 @@
 #include "validator.h"
 
 static struct argp_option options[] = {
-    {
-        .name = "gen_size",
-        .key = 'g',
-        .arg = "SIZE",
-        .flags = 0,
-        .doc = "Set the generation size"
-     },
-     {
-        .name = "nr_iterations",
-        .key = 'i',
-        .arg = "ITER",
-        .flags = 0,
-        .doc = "Set the amount of test iterations"
-     },
-     {
-        .name = "loss_rate",
-        .key = 'l',
-        .arg = "LOSS",
-        .flags = 0,
-        .doc = "Set propability with which a coded packet is lost during transmission"
-     },
-     {
-        .name = "pkt_size",
-        .key = 'p',
-        .arg = "SIZE",
-        .flags = 0,
-        .doc = "Set the packet size"
-     },
-     {
-        .name = "seed",
-        .key = 's',
-        .arg = "ADDR",
-        .flags = 0,
-        .doc = "Produce verbose output"
-     },
-     {NULL}
-     };
+    {.name = "gen_size",
+     .key = 'g',
+     .arg = "SIZE",
+     .flags = 0,
+     .doc = "Set the generation size"},
+    {.name = "nr_iterations",
+     .key = 'i',
+     .arg = "ITER",
+     .flags = 0,
+     .doc = "Set the amount of test iterations"},
+    {.name = "loss_rate",
+     .key = 'l',
+     .arg = "LOSS",
+     .flags = 0,
+     .doc = "Set propability with which a coded packet is lost during "
+            "transmission"},
+    {.name = "pkt_size",
+     .key = 'p',
+     .arg = "SIZE",
+     .flags = 0,
+     .doc = "Set the packet size"},
+    {.name = "seed",
+     .key = 's',
+     .arg = "ADDR",
+     .flags = 0,
+     .doc = "Set the seed which is used to generate random test input"},
+    {.name = "verbose",
+     .key = 'v',
+     .arg = 0,
+     .flags = 0,
+     .doc = "Produce verbose output"},
+    {NULL}};
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state);
 
 static char doc[] = "validation tool for the moeprlcn library";
 
-static struct argp argp = {options, parse_opt, NULL, doc};
+static struct argp argp = {
+    .options = options, .parser = parse_opt, .args_doc = 0, .doc = doc};
 
 struct arguments {
     u64 generation_size;
