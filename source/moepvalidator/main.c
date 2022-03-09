@@ -1,6 +1,4 @@
 #include <argp.h>
-#include <moep/system.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -49,12 +47,12 @@ static struct argp argp = {
     .options = options, .parser = parse_opt, .args_doc = 0, .doc = doc};
 
 struct arguments {
-    u64 generation_size;
-    u64 nr_iterations;
+    unsigned generation_size;
+    unsigned nr_iterations;
     float loss_rate;
-    u64 packet_size;
-    u32 seed;
-    bool verbose;
+    unsigned packet_size;
+    unsigned seed;
+    unsigned verbose;
 } args;
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -99,9 +97,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             args->verbose = true;
             break;
 
-            // TODO ARGP_KEY_ARG
-            // TODO ARGP_KEY_END
-
         default:
             return ARGP_ERR_UNKNOWN;
     }
@@ -110,7 +105,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
 int main(int argc, char **argv) {
     memset(&args, 0, sizeof(args));
-    // TODO: realistic numbers
+    // TODO: realistic default values
     args.generation_size = 100;
     args.nr_iterations = 10;
     args.loss_rate = 0.0;
@@ -121,7 +116,8 @@ int main(int argc, char **argv) {
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
 
-    logger("Logger works fine! %d\n", 42);
+    logger("%ld %ld %f %ld %d %d\n", args.generation_size, args.nr_iterations,
+           args.loss_rate, args.packet_size, args.seed, args.verbose); //test if logger works
 
     // TODO call here: validate(args.generation_size, ...);
 
