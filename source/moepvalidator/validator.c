@@ -14,12 +14,14 @@
 #include <moeprlnc/rlnc.h>
 #include "util.h"
 
+#define MEMORY_ALIGNMENT		32
+
 struct generation{
     size_t packet_size;
     size_t n_packets;
     size_t generation_size;
     // size: n_packets x packet_size
-    char *data;
+    uint8_t *data;
 };
 
 void free_gen(struct generation *gen){
@@ -42,11 +44,11 @@ int randint(int from, int to){
     double diff = to - from;
     return (int) (diff*r/(RAND_MAX) + from);
 }
-u8 randbyte(){
-    return (u8) randint(0, 255);
+uint8_t randbyte(){
+    return (uint8_t) randint(0, 255);
 }
 
-void randbytes(size_t n, char *a){
+void randbytes(size_t n, uint8_t *a){
     for (size_t i = 0; i < n; i++){
         a[i] = randbyte();
     }
@@ -64,13 +66,13 @@ bool assert_equal(struct generation *gen_a, struct generation *gen_b){
         return false;
 }
 
-void assert(bool exp, char *msg){
+void assert(bool exp, uint8_t *msg){
     // TODO: do some logging if exp is false -> should not happen
 }
 
-struct generation* empty_generation(u64 packet_size, u64 generation_size){
+struct generation* empty_generation(size_t packet_size, size_t generation_size){
     size_t len = packet_size*generation_size;
-    char *data = malloc(sizeof(char)*len);
+    uint8_t *data = malloc(sizeof(uint8_t)*len);
     struct generation *gen_new = malloc(sizeof(struct generation));
     gen_new->data = data;
     gen_new->packet_size = packet_size;
@@ -79,7 +81,7 @@ struct generation* empty_generation(u64 packet_size, u64 generation_size){
     return gen_new;
 }
 
-struct generation* create_generation(u64 packet_size, u64 generation_size){
+struct generation* create_generation(size_t packet_size, size_t generation_size){
     size_t len = packet_size*generation_size;
     struct generation *gen_new = empty_generation(packet_size, generation_size);
     randbytes(len, gen_new->data);
@@ -123,7 +125,7 @@ int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t pac
 }
 
 
-int validate(u64 iterations, u64 packet_size, u64 generation_size, float loss_rate, unsigned int seed){
+int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed){
     // TODO: add loop
     struct generation *gen_a;
     struct generation *gen_b;
@@ -143,8 +145,8 @@ int validate(u64 iterations, u64 packet_size, u64 generation_size, float loss_ra
         consumed_packets = 0;
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
-        rlnc_block_a = rlnc_block_init((int)generation_size, (size_t)(generation_size*packet_size), (size_t) packet_size, gftype);
-        rlnc_block_b = rlnc_block_init((int)generation_size, (size_t)(generation_size*packet_size), (size_t) packet_size, gftype);
+        rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
+        rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
         while (gen_a->n_packets != gen_b->n_packets)
         {
             r = randf();

@@ -47,12 +47,12 @@ static struct argp argp = {
     .options = options, .parser = parse_opt, .args_doc = 0, .doc = doc};
 
 struct arguments {
-    unsigned generation_size;
-    unsigned nr_iterations;
+    size_t generation_size;
+    size_t nr_iterations;
     float loss_rate;
-    unsigned packet_size;
-    unsigned seed;
-    unsigned verbose;
+    size_t packet_size;
+    unsigned int seed;
+    bool verbose;
 } args;
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     logger("%ld %ld %f %ld %d %d\n", args.generation_size, args.nr_iterations,
            args.loss_rate, args.packet_size, args.seed, args.verbose); //test if logger works
 
-    // TODO call here: validate(args.generation_size, ...);
+    validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed);
 
     return 0;
 }
