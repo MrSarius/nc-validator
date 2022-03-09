@@ -1,24 +1,50 @@
 #include <argp.h>
+#include <moep/system.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-
-#include <moep/system.h>
 
 #include "util.h"
 #include "validator.h"
 
 static struct argp_option options[] = {
-    {"gen_size", 'g', "SIZE", 0, "Set the generation size"},
-    {"nr_iterations", 'i', "ITER", 0, "Set the amount of test iterations"},
-    {"loss_rate", 'l', "LOSS", 0,
-     "Set propability with which a coded packet is lost during transmission"},
-    {"pkt_size", 'p', "SIZE", 0, "Set the packet size"},
-    {"seed", 's', "ADDR", 0, "Set the ip address to ADDR"},
-    {"verbose", 'v', 0, 0,
-     "Produce verbose output"},  // TODO 5 verbose levels are little overkill,
-                                 // isn't it?
-    {}};
+    {
+        .name = "gen_size",
+        .key = 'g',
+        .arg = "SIZE",
+        .flags = 0,
+        .doc = "Set the generation size"
+     },
+     {
+        .name = "nr_iterations",
+        .key = 'i',
+        .arg = "ITER",
+        .flags = 0,
+        .doc = "Set the amount of test iterations"
+     },
+     {
+        .name = "loss_rate",
+        .key = 'l',
+        .arg = "LOSS",
+        .flags = 0,
+        .doc = "Set propability with which a coded packet is lost during transmission"
+     },
+     {
+        .name = "pkt_size",
+        .key = 'p',
+        .arg = "SIZE",
+        .flags = 0,
+        .doc = "Set the packet size"
+     },
+     {
+        .name = "seed",
+        .key = 's',
+        .arg = "ADDR",
+        .flags = 0,
+        .doc = "Produce verbose output"
+     },
+     {NULL}
+     };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state);
 
@@ -99,7 +125,7 @@ int main(int argc, char **argv) {
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
 
-	logger("Logger works fine! %d\n", 42);
+    logger("Logger works fine! %d\n", 42);
 
     // TODO call here: validate(args.generation_size, ...);
 
