@@ -12,7 +12,6 @@
 #include <moep/modules/moep80211.h>
 #include <moep/modules/ieee8023.h>
 #include <moeprlnc/rlnc.h>
-#include "util.h"
 
 #define MEMORY_ALIGNMENT		32
 
