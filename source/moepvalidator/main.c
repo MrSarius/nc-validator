@@ -53,6 +53,7 @@ struct arguments {
     size_t packet_size;
     unsigned int seed;
     bool verbose;
+    int gftype;
 } args;
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -112,6 +113,7 @@ int main(int argc, char **argv) {
     args.packet_size = 1500;
     args.seed = 42;
     args.verbose = false;
+    args.gftype = 3;
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
@@ -119,7 +121,14 @@ int main(int argc, char **argv) {
     logger("%ld %ld %f %ld %d %d\n", args.generation_size, args.nr_iterations,
            args.loss_rate, args.packet_size, args.seed, args.verbose); //test if logger works
 
-    validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed);
+    
 
-    return 0;
+    if(validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype)){
+        printf("Validation program run through without errors!");
+        return 0;
+    } else {
+        printf("Validation program had some errors, see the log above for more information!");
+        return -1;
+    }
+
 }

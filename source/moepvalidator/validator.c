@@ -12,6 +12,7 @@
 #include <moep/modules/moep80211.h>
 #include <moep/modules/ieee8023.h>
 #include <moeprlnc/rlnc.h>
+#include <stdarg.h>
 
 #define MEMORY_ALIGNMENT		32
 
@@ -56,7 +57,7 @@ void randbytes(size_t n, uint8_t *a){
 
 
 
-bool assert_equal(struct generation *gen_a, struct generation *gen_b){
+bool cmp_gen(const struct generation *gen_a, const struct generation *gen_b){
     if(gen_a->packet_size != gen_b->packet_size || gen_a->n_packets != gen_b->n_packets)
         return false;
     if(memcmp(gen_a->data, gen_b->data, gen_a->n_packets*gen_a->packet_size) == 0)
@@ -65,8 +66,14 @@ bool assert_equal(struct generation *gen_a, struct generation *gen_b){
         return false;
 }
 
-void assert(bool exp, uint8_t *msg){
-    // TODO: do some logging if exp is false -> should not happen
+void assert(bool exp, const char *format, ...){
+    if (!exp){
+        va_list args;
+        va_start(args, format);
+        fprintf(stderr, format, args);
+        va_end(args);
+        exit(-1);
+    }
 }
 
 struct generation* empty_generation(size_t packet_size, size_t generation_size){
@@ -106,7 +113,7 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
         return -1;
     }
     re = rlnc_block_decode(rlnc_block_b, dst, packet_size);
-    // TODO check the return values
+    assert(re == 0, "Return of rlnc_block_decode in transmit_A2B was %i instead of 0", re);
 
     // moeprln copies data so we have to free it
     free(dst);
@@ -123,9 +130,19 @@ int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t pac
     return 0;
 }
 
+// void print_gen_diff(const struct generation *gen_a, const struct generation *gen_b){
+//     size_t len_a = gen_a->n_packets*gen_a->packet_size;
+//     size_t len_b = gen_b->n_packets*gen_b->packet_size;
+//     for (size_t i = 0; i < min(len_a, len_b); i++)
+//     {
+//         /* code */
+//         if(gen_a->data[i] != )
+//     }
+    
+// }
 
-int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed){
-    // TODO: add loop
+
+int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype){
     struct generation *gen_a;
     struct generation *gen_b;
     float r;
@@ -134,12 +151,13 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t created_packets; 
     size_t consumed_packets; 
     // TODO: maybe randomly choose gftype
-    enum MOEPGF_TYPE gftype = MOEPGF256;
+    // enum MOEPGF_TYPE gftype = MOEPGF256;
     int re_val;
 
     set_seed(seed);
     for (size_t i = 0; i < iterations; i++)
     {
+        printf("starting iteration #%i", (int)i);
         created_packets = 0;
         consumed_packets = 0;
         gen_a = create_generation(packet_size, generation_size);
@@ -149,6 +167,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         while (gen_a->n_packets != gen_b->n_packets)
         {
             r = randf();
+            printf("chosen random variable: %f\n", r);
             if (r < 1/3 && created_packets < generation_size)
             {
                 re_val = create_at_A(gen_a, rlnc_block_a, created_packets++);
@@ -163,15 +182,38 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
                 }else{
                     // the next packet could be decoded and is in gen_b
                     consumed_packets++;
+                    // check if generations match
+                    if(memcmp(gen_a->data + i*packet_size, gen_b->data + i*packet_size, packet_size) != 0){
+                        fprintf(stderr, "Generations do not match!\n");
+                        char *a = malloc(sizeof(char)*packet_size+1);
+                        char *b = malloc(sizeof(char)*packet_size+1);
+                        memcpy(a, gen_a->data, packet_size);
+                        memcpy(b, gen_b->data, packet_size);
+                        a[packet_size] = '\0';
+                        b[packet_size] = '\0';
+                        fprintf(stderr, "Packet a: %s\n", a);
+                        fprintf(stderr, "Packet b: %s\n", a);
+
+                        free_gen(gen_a);
+                        free_gen(gen_b);
+                        rlnc_block_free(rlnc_block_a);
+                        rlnc_block_free(rlnc_block_b);
+                        return -1;
+                    }
                 }
             }
 
             // TODO: log rank of the matrix
         }
         
-        if(!assert_equal(gen_a, gen_b)){
-            // error
-            // TODO maybe use errno
+        if(!cmp_gen(gen_a, gen_b)){
+            // TODO print diff of generation -> or just mis matched packets
+            // maybe do this check even at packet basis
+            fprintf(stderr, "Generations do not match! This should not happen as they are compared packet-wise before\n");
+            free_gen(gen_a);
+            free_gen(gen_b);
+            rlnc_block_free(rlnc_block_a);
+            rlnc_block_free(rlnc_block_b);
             return -1;
         }
 
