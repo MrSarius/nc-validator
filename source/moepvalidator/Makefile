@@ -5,11 +5,12 @@ DYNAMICLIBS:=-L/usr/local/lib -Wl,-rpath=/usr/local/lib
 TARGET:=main
 OBJS:=main.o statistics.o validator.o
 
+# TODO: remove debug flag -g
 all: $(OBJS)
-	 $(CC) $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET) $(OBJS) -lmoeprlnc -lmoep 
+	 $(CC) -g $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET) $(OBJS) -lmoeprlnc -lmoep -lmoepgf
 
 %.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -g -c -o $@ $< $(CFLAGS)
 
 .PHONY: clean
 clean:
