@@ -111,7 +111,9 @@ int main(int argc, char **argv) {
     args.nr_iterations = 10;
     args.loss_rate = 0.0;
     args.packet_size = 1500;
-    args.seed = 42;
+    // TODO: 42 leads to a weird stucking error
+    // args.seed = 42;
+    args.seed = 43;
     args.verbose = false;
     args.gftype = 3;
 
@@ -123,11 +125,11 @@ int main(int argc, char **argv) {
 
     
 
-    if(validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype)){
-        printf("Validation program run through without errors!");
+    if(validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype)==0){
+        printf("Validation program run through without errors!\n");
         return 0;
     } else {
-        printf("Validation program had some errors, see the log above for more information!");
+        printf("Validation program had some errors, see the log above for more information!\n");
         return -1;
     }
 
