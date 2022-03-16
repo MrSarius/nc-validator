@@ -103,8 +103,10 @@ int create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a, size_t ith)
     return rlnc_block_add(rlnc_block_a, (int)ith, (const uint8_t*) (gen_a->data + ith*ps), ps);
 }
 
-int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b, size_t packet_size, size_t created_packets){
-    size_t sz = ((packet_size/MEMORY_ALIGNMENT)+1)*MEMORY_ALIGNMENT;
+int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b, size_t created_packets){
+    ssize_t	frame_size = rlnc_block_current_frame_len(rlnc_block_a);
+    size_t sz = ((frame_size/MEMORY_ALIGNMENT)+1)*MEMORY_ALIGNMENT;
+
     uint8_t *dst = malloc(sizeof(uint8_t)*sz);
 
     ssize_t re = rlnc_block_encode(rlnc_block_a, dst, sz, 0);
@@ -145,24 +147,13 @@ int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t pac
     return 0;
 }
 
-// void print_gen_diff(const struct generation *gen_a, const struct generation *gen_b){
-//     size_t len_a = gen_a->n_packets*gen_a->packet_size;
-//     size_t len_b = gen_b->n_packets*gen_b->packet_size;
-//     for (size_t i = 0; i < min(len_a, len_b); i++)
-//     {
-//         /* code */
-//         if(gen_a->data[i] != )
-//     }
-    
-// }
-
 void print_pkt_diff(const struct generation *gen_a, const struct generation *gen_b, size_t ith, size_t packet_size){
     uint8_t *data_a = gen_a->data + ith*packet_size;
     uint8_t *data_b = gen_b->data + ith*packet_size;
     for (size_t i = 0; i < packet_size; i++)
     {
         if(data_a[i] != data_b[i])
-            printf("%i: %i!=%i\n", i, data_a[i], data_b[i]);
+            printf("%zu: %i != %i\n", i, data_a[i], data_b[i]);
     }
     
 }
@@ -200,7 +191,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
                 re_val = create_at_A(gen_a, rlnc_block_a, created_packets++);
             }else if (r > 1./3 && r < 2./3)
             {
-                re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, packet_size, created_packets);
+                re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, created_packets);
                 if(re_val==0){
                     transmitted_packets++;
                 }
