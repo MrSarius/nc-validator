@@ -4,9 +4,9 @@
             "type": "cppbuild",
             "label": "C/C++: gcc build active file",
             "command": "make",
-            "args": [],
+            "args": ["debug"],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}/source/moepvalidator"
             },
             "problemMatcher": [
                 "$gcc"
