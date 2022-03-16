@@ -53,7 +53,7 @@ static struct argp argp = {
     .options = options, .parser = parse_opt, .args_doc = 0, .doc = doc};
 
 struct arguments {
-    int field_size;
+    int gftype;
     size_t generation_size;
     size_t nr_iterations;
     float loss_rate;
@@ -68,8 +68,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
     switch (key) {
         case 'f':
-            args->field_size = strtol(arg, &endptr, 0);
-            if ((args->field_size < 0 || args->field_size > 3) ||
+            args->gftype = strtol(arg, &endptr, 0);
+            if ((args->gftype < 0 || args->gftype > 3) ||
                 (!endptr && endptr != arg + strlen(arg)))
                 argp_failure(state, 1, errno, "Invalid field size: %s", arg);
             break;
@@ -120,7 +120,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 int main(int argc, char **argv) {
     memset(&args, 0, sizeof(args));
     // TODO: realistic default values
-    args.field_size = 3;  // GF256
+    args.gftype = 3;  // GF256
     args.generation_size = 100;
     args.nr_iterations = 10;
     args.loss_rate = 0.0;
@@ -137,11 +137,11 @@ int main(int argc, char **argv) {
         "##### Command Line Parameter #####\nField Size: %ld\nGeneration "
         "Size: %ld\nNumber of Iterations: %ld\nLoss Rate: %f\nPacket Size: "
         "%ld\nSeed: %d\nVerbose: %d\n",
-        args.field_size, args.generation_size, args.nr_iterations,
+        args.gftype, args.generation_size, args.nr_iterations,
         args.loss_rate, args.packet_size, args.seed,
         args.verbose);  // test if logger works
 
-    if(validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.field_size)==0){
+    if(validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype)==0){
         printf("Validation program run through without errors!\n");
         return 0;
     } else {
