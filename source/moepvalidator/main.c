@@ -120,7 +120,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 int main(int argc, char **argv) {
     memset(&args, 0, sizeof(args));
     // TODO: realistic default values
-    args.generation_size = 3;  // GF256
+    args.field_size = 3;  // GF256
     args.generation_size = 100;
     args.nr_iterations = 10;
     args.loss_rate = 0.0;
@@ -129,7 +129,6 @@ int main(int argc, char **argv) {
     // args.seed = 42;
     args.seed = 43;
     args.verbose = false;
-    args.gftype = 3;
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
