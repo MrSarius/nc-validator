@@ -18,12 +18,14 @@ $(OUT)/%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # -g flag is for debugging
+# -O0 removes compiler optimization -> fixes <optimized out> for debugger variables
+# However, this might lead to different code execution for debug and production code!
 debug: $(OBJS_DEBUG)
-	$(CC) -g $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET_DEBUG) $(OBJS_DEBUG) -lmoeprlnc -lmoep -lmoepgf
+	$(CC) -g $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET_DEBUG) $(OBJS_DEBUG) -lmoeprlnc -lmoep -lmoepgf -O0
 
 $(OUT_DEBUG)/%.o: %.c
 	@mkdir -p $(OUT_DEBUG)
-	$(CC) -g -c -o $@ $< $(CFLAGS)
+	$(CC) -g -c -o $@ $< $(CFLAGS) -O0
 
 .PHONY: clean
 clean:
