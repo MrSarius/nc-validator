@@ -8,19 +8,24 @@
 #define ALLIGNMENT 32
 #define GEN_SIZE 100
 #define FRAME_SIZE 1500
-#define GF_TYPE 3  // GF265
+#define GF_TYPE 1  // GF265
+#define AMOUNT_TRANSMISSIONS 100
 
-bool check_if_fully_decoded(rlnc_block_t b){
-    size_t sz = ((FRAME_SIZE / ALLIGNMENT) + 1) * ALLIGNMENT; //here we need space for the decoded data only. So no coefficients
+bool check_if_fully_decoded(rlnc_block_t b) {
+    size_t sz = ((FRAME_SIZE / ALLIGNMENT) + 2) * ALLIGNMENT;  // here we need space for the decoded data only.
+                               // So no coefficients
+    // BUT WHY DO WE NEED +2 and not +1... Just found out by trying
     uint8_t *dst = malloc(sizeof(uint8_t) * sz);
 
     for (size_t i = 0; i < GEN_SIZE; i++) {
-            if (rlnc_block_get(b, i, dst, sz) == 0){ //if one is zero, not all pkts in generation have been decoded yet
-                return false;
-            }
-            printf("pkt decoded\n");
+        int tmp = rlnc_block_get(b, i, dst, sz);
+        if (tmp == 0) {  // if one is zero, not all pkts in generation have been decoded yet
+            printf("Generation Could not be decoded.\n");
+            return false;
         }
-    printf("lol\n");
+        printf("pkt decoded: %d\n", tmp);
+    }
+    printf("Generation Decoded yeahh!\n");
     return true;
 }
 
@@ -50,11 +55,14 @@ int main() {
     }
 
     ssize_t re;
-    size_t len = rlnc_block_current_frame_len(rlnc_block_a); //here we need space for the coded data + coefficients + ALLIGNMENT padding
+    size_t len = rlnc_block_current_frame_len(
+        rlnc_block_a);  // here we need space for the coded data + coefficients
+                        // + ALLIGNMENT padding
     len = ((len / ALLIGNMENT) + 1) * ALLIGNMENT;
     uint8_t *dst = malloc(sizeof(uint8_t) * len);
 
-    while (!check_if_fully_decoded(rlnc_block_b)) {
+    int i = 0;
+    while (i < AMOUNT_TRANSMISSIONS) {
         re = rlnc_block_encode(rlnc_block_a, dst, len, 0);
         if (re == 0) {
             printf("Error while encoding\n");
@@ -66,5 +74,7 @@ int main() {
             printf("Error while decoding\n");
             exit(-1);
         }
+        i++;
     }
+    check_if_fully_decoded(rlnc_block_b);
 }
