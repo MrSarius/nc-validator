@@ -5,10 +5,10 @@ OUT:=build
 OUT_DEBUG:=$(OUT)/debug
 
 TARGET:=$(OUT)/main
-OBJS:=$(OUT)/main.o $(OUT)/statistics.o $(OUT)/validator.o
+OBJS:=$(OUT)/main.o $(OUT)/statistics.o $(OUT)/validator.o $(OUT)/util.o
 
 TARGET_DEBUG:=$(OUT_DEBUG)/main
-OBJS_DEBUG:=$(OUT_DEBUG)/main.o $(OUT_DEBUG)/statistics.o $(OUT_DEBUG)/validator.o
+OBJS_DEBUG:=$(OUT_DEBUG)/main.o $(OUT_DEBUG)/statistics.o $(OUT_DEBUG)/validator.o $(OUT)/util.o
 
 all: $(OBJS)
 	$(CC) $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET) $(OBJS) -lmoeprlnc -lmoep -lmoepgf

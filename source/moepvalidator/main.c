@@ -125,21 +125,19 @@ int main(int argc, char **argv) {
     args.nr_iterations = 10;
     args.loss_rate = 0.0;
     args.packet_size = 1500;
-    // TODO: 42 leads to a weird stucking error
-    // args.seed = 42;
-    args.seed = 43;
+    args.seed = 42;
     args.verbose = false;
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
 
     logger(
-        "##### Command Line Parameter #####\nField Size: %ld\nGeneration "
+        "##### Parameters: #####\nField Size: %ld\nGeneration "
         "Size: %ld\nNumber of Iterations: %ld\nLoss Rate: %f\nPacket Size: "
-        "%ld\nSeed: %d\nVerbose: %d\n",
+        "%ld\nSeed: %d\nVerbose: %d\n\n",
         args.gftype, args.generation_size, args.nr_iterations,
         args.loss_rate, args.packet_size, args.seed,
-        args.verbose);  // test if logger works
+        args.verbose);
 
     if(validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype)==0){
         printf("Validation program run through without errors!\n");

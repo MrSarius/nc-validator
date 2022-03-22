@@ -13,6 +13,10 @@
 #include <moep/modules/ieee8023.h>
 #include <moeprlnc/rlnc.h>
 #include <stdarg.h>
+#include <stdbool.h>
+
+#include "validator.h"
+#include "util.h"
 
 #define MEMORY_ALIGNMENT		32
 
