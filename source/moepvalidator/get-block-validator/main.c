@@ -6,11 +6,11 @@
 #include <unistd.h>
 
 #define ALLIGNMENT 32
-#define GEN_SIZE 89
+#define GEN_SIZE 100
 #define FRAME_SIZE 1500
 #define GF_TYPE 3  // GF265
-#define AMOUNT_TRANSMISSIONS GEN_SIZE - 1 //transmissions per iteration
-#define ITERATIONS 100
+#define AMOUNT_TRANSMISSIONS 100 //transmissions per iteration
+#define ITERATIONS 10
 
 void iterate();
 bool check_if_fully_decoded(rlnc_block_t b);
@@ -35,7 +35,7 @@ void iterate(){
     uint8_t *data_a = malloc(GEN_SIZE * FRAME_SIZE * sizeof(uint8_t));
     memset(data_a, 42,
            GEN_SIZE * FRAME_SIZE *
-               sizeof(uint8_t));  // set all data to 42 for debugging
+               sizeof(uint8_t));  // set all data to 42
 
     // pass data to Block A
     for (int i = 0; i < GEN_SIZE; i++) {
@@ -49,8 +49,7 @@ void iterate(){
 
     ssize_t re;
     size_t len = rlnc_block_current_frame_len(
-        rlnc_block_a);  // here we need space for the coded data + coefficients
-                        // + ALLIGNMENT padding
+        rlnc_block_a); 
     len = ((len / ALLIGNMENT) + 1) * ALLIGNMENT;
     uint8_t *dst = malloc(sizeof(uint8_t) * len);
 
@@ -73,9 +72,7 @@ void iterate(){
 }
 
 bool check_if_fully_decoded(rlnc_block_t b) {
-    size_t sz = ((FRAME_SIZE / ALLIGNMENT) + 2) * ALLIGNMENT;  // here we need space for the decoded data only.
-                               // So no coefficients
-    // BUT WHY DO WE NEED +2 and not +1... Just found out by trying
+    size_t sz = ((FRAME_SIZE / ALLIGNMENT) + 2) * ALLIGNMENT;
     uint8_t *dst = malloc(sizeof(uint8_t) * sz);
 
     for (size_t i = 0; i < GEN_SIZE; i++) {
@@ -87,8 +84,7 @@ bool check_if_fully_decoded(rlnc_block_t b) {
         if (tmp != FRAME_SIZE){
             printf("Should Not Happen! Decoded frame bigger than original ones\n");
         }
-        //printf("pkt decoded: %d\n", tmp);
     }
-    printf("Generation Decoded yeahh!\n");
+    printf("Generation could be decoded!\n");
     return true;
 }
