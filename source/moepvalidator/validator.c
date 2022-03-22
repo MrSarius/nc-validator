@@ -107,6 +107,10 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
     ssize_t	frame_size = rlnc_block_current_frame_len(rlnc_block_a);
     size_t sz = ((frame_size/MEMORY_ALIGNMENT)+1)*MEMORY_ALIGNMENT;
 
+    if (frame_size == 0){
+        sz = 0;
+    }
+
     uint8_t *dst = malloc(sizeof(uint8_t)*sz);
 
     ssize_t re = rlnc_block_encode(rlnc_block_a, dst, sz, 0);
@@ -127,7 +131,7 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
 }
 
 int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets){
-    size_t sz = ((packet_size/MEMORY_ALIGNMENT)+1)*MEMORY_ALIGNMENT;
+    size_t sz = ((packet_size/MEMORY_ALIGNMENT)+2)*MEMORY_ALIGNMENT;
     uint8_t *dst = malloc(sizeof(uint8_t)*sz);
 
     ssize_t	re = rlnc_block_get(rlnc_block_b, (int)consumed_packets, (uint8_t*) dst, sz);
