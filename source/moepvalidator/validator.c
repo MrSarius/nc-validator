@@ -49,14 +49,19 @@ void set_seed(unsigned int seed)
 
 float randf()
 {
-    long int r = random();
+    long int r;
+
+    r = random();
     return (float)r / (RAND_MAX);
 }
 
 int randint(int from, int to)
 {
-    long int r = random();
-    double diff = to - from;
+    long int r;
+    double diff;
+
+    r = random();
+    diff = to - from;
     return (int)(diff * r / (RAND_MAX) + from);
 }
 uint8_t randbyte()
@@ -66,7 +71,8 @@ uint8_t randbyte()
 
 void randbytes(size_t n, uint8_t *a)
 {
-    for (size_t i = 0; i < n; i++)
+    size_t i;
+    for (i = 0; i < n; i++)
     {
         a[i] = randbyte();
     }
@@ -104,9 +110,13 @@ void assert(bool exp, const char *format, ...)
 
 struct generation *empty_generation(size_t packet_size, size_t generation_size)
 {
-    size_t len = packet_size * generation_size;
-    uint8_t *data = malloc(sizeof(uint8_t) * len);
-    struct generation *gen_new = malloc(sizeof(struct generation));
+    size_t len;
+    uint8_t *data;
+    struct generation *gen_new;
+
+    len = packet_size * generation_size;
+    data = malloc(sizeof(uint8_t) * len);
+    gen_new = malloc(sizeof(struct generation));
     gen_new->data = data;
     gen_new->packet_size = packet_size;
     gen_new->generation_size = generation_size;
@@ -116,8 +126,11 @@ struct generation *empty_generation(size_t packet_size, size_t generation_size)
 
 struct generation *create_generation(size_t packet_size, size_t generation_size)
 {
-    size_t len = packet_size * generation_size;
-    struct generation *gen_new = empty_generation(packet_size, generation_size);
+    size_t len;
+    struct generation *gen_new;
+    
+    len = packet_size * generation_size;
+    gen_new = empty_generation(packet_size, generation_size);
     randbytes(len, gen_new->data);
     gen_new->n_packets = generation_size;
     return gen_new;
@@ -125,22 +138,29 @@ struct generation *create_generation(size_t packet_size, size_t generation_size)
 
 int create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a, size_t ith)
 {
-    size_t ps = gen_a->packet_size;
+    size_t ps;
+
+    ps = gen_a->packet_size;
     return rlnc_block_add(rlnc_block_a, (int)ith, (const uint8_t *)(gen_a->data + ith * ps), ps);
 }
 
 int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b, size_t created_packets)
 {
-    ssize_t frame_size = rlnc_block_current_frame_len(rlnc_block_a);
-    size_t sz = aligned_length(frame_size, MEMORY_ALIGNMENT);
+    ssize_t frame_size;
+    size_t sz;
+    uint8_t *dst;
+    ssize_t re;
+    float r;
 
-    uint8_t *dst = malloc(sizeof(uint8_t) * sz);
+    frame_size = rlnc_block_current_frame_len(rlnc_block_a);
+    sz = aligned_length(frame_size, MEMORY_ALIGNMENT);
+    dst = malloc(sizeof(uint8_t) * sz);
+    re = rlnc_block_encode(rlnc_block_a, dst, sz, 0);
 
-    ssize_t re = rlnc_block_encode(rlnc_block_a, dst, sz, 0);
     assert(!(re > sz && re != -1), "transmit_A2B: rlnc_block_encode returned incoherent size!\n");
     assert(!(created_packets == 0 && re != -1), "Return of rlnc_block_encode in transmit_A2B was %i instead of -1 (no packets previously added)", re);
 
-    float r = randf();
+    r = randf();
     if (r <= loss_rate)
     {
         // simulated packet loss
@@ -156,10 +176,14 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
 }
 int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets)
 {
-    size_t sz = aligned_length(packet_size, MEMORY_ALIGNMENT);
-    uint8_t *dst = malloc(sizeof(uint8_t) * sz);
+    size_t sz;
+    uint8_t *dst;
+    ssize_t re;
 
-    ssize_t re = rlnc_block_get(rlnc_block_b, (int)consumed_packets, (uint8_t *)dst, sz);
+    sz = aligned_length(packet_size, MEMORY_ALIGNMENT);
+    dst = malloc(sizeof(uint8_t) * sz);
+    re = rlnc_block_get(rlnc_block_b, (int)consumed_packets, (uint8_t *)dst, sz);
+
     assert(re <= sz, "consume_at_B: rlnc_block_get returned incoherent size! max=%lu, return=%li\n", sz, re);
 
     if (re == 0)
@@ -178,8 +202,11 @@ int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t pac
 
 void print_pkt_diff(const struct generation *gen_a, const struct generation *gen_b, size_t ith, size_t packet_size)
 {
-    uint8_t *data_a = gen_a->data + ith * packet_size;
-    uint8_t *data_b = gen_b->data + ith * packet_size;
+    uint8_t *data_a;
+    uint8_t *data_b;
+    
+    data_a = gen_a->data + ith * packet_size;
+    data_b = gen_b->data + ith * packet_size;
     fprintf(stderr, "Frame diff in detail:\n");
     for (size_t i = 0; i < packet_size; i++)
     {
@@ -189,8 +216,11 @@ void print_pkt_diff(const struct generation *gen_a, const struct generation *gen
 }
 void print_ith_frame_ab(const struct generation *gen_a, const struct generation *gen_b, size_t packet_size, size_t i)
 {
-    char *a = malloc(sizeof(char) * packet_size + 1);
-    char *b = malloc(sizeof(char) * packet_size + 1);
+    char *a;
+    char *b;
+
+    a = malloc(sizeof(char) * packet_size + 1);
+    b = malloc(sizeof(char) * packet_size + 1);
     memcpy(a, gen_a->data + i * packet_size, packet_size);
     memcpy(b, gen_b->data + i * packet_size, packet_size);
     a[packet_size] = '\0';
@@ -210,9 +240,10 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t consumed_packets;
     size_t transmitted_packets;
     int re_val;
+    size_t i;
 
     set_seed(seed);
-    for (size_t i = 0; i < iterations; i++)
+    for (i = 0; i < iterations; i++)
     {
         printf("starting iteration #%i\n", (int)i);
         created_packets = 0;
