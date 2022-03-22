@@ -32,6 +32,13 @@ void free_gen(struct generation *gen){
     free(gen);
 }
 
+void free_everything(struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b){
+    free_gen(gen_a);
+    free_gen(gen_b);
+    rlnc_block_free(rlnc_block_a);
+    rlnc_block_free(rlnc_block_b);
+}
+
 void set_seed(unsigned int seed){
     srandom(seed);
 }
@@ -55,6 +62,10 @@ void randbytes(size_t n, uint8_t *a){
     for (size_t i = 0; i < n; i++){
         a[i] = randbyte();
     }
+}
+
+size_t aligned_length(size_t len, size_t alignment) {
+	return (((len+alignment-1)/alignment)*alignment);
 }
 
 
@@ -109,16 +120,11 @@ int create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a, size_t ith)
 
 int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b, size_t created_packets){
     ssize_t	frame_size = rlnc_block_current_frame_len(rlnc_block_a);
-    size_t sz = ((frame_size/MEMORY_ALIGNMENT)+1)*MEMORY_ALIGNMENT;
-
-    if (frame_size == 0){
-        sz = 0;
-    }
+    size_t sz = aligned_length(frame_size, MEMORY_ALIGNMENT);
 
     uint8_t *dst = malloc(sizeof(uint8_t)*sz);
 
     ssize_t re = rlnc_block_encode(rlnc_block_a, dst, sz, 0);
-    // assert(re == sz, "transmit_A2B: BAAAD\n");
     assert(!(re > sz && re != -1), "transmit_A2B: rlnc_block_encode returned incoherent size!\n");
     assert(!(created_packets == 0 && re != -1), "Return of rlnc_block_encode in transmit_A2B was %i instead of -1 (no packets previously added)", re);
     
@@ -128,23 +134,19 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
         free(dst);
         return -1;
     }
-    re = rlnc_block_decode(rlnc_block_b, dst, re);
+    re = rlnc_block_decode(rlnc_block_b, dst, sz);
     assert(re == 0, "Return of rlnc_block_decode in transmit_A2B was %i instead of 0", re);
 
     // moeprln copies data so we have to free it
     free(dst);
     return 0;
 }
-int asdf = 0;
 int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets){
-    size_t sz = ((packet_size/MEMORY_ALIGNMENT)+2)*MEMORY_ALIGNMENT;
+    size_t sz = aligned_length(packet_size, MEMORY_ALIGNMENT);
     uint8_t *dst = malloc(sizeof(uint8_t)*sz);
-    // if (asdf == 1389)
-    //     printf("asdf");
 
     ssize_t	re = rlnc_block_get(rlnc_block_b, (int)consumed_packets, (uint8_t*) dst, sz);
     assert(re <= sz, "consume_at_B: rlnc_block_get returned incoherent size! max=%lu, return=%li\n", sz, re);
-    asdf++;
 
     if(re == 0){
         // no new packet could be decoded
@@ -156,20 +158,27 @@ int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t pac
     memcpy(gen_b->data + consumed_packets*packet_size, dst, re);
     gen_b->n_packets++;
     free(dst);
-
-
     return 0;
 }
 
 void print_pkt_diff(const struct generation *gen_a, const struct generation *gen_b, size_t ith, size_t packet_size){
     uint8_t *data_a = gen_a->data + ith*packet_size;
     uint8_t *data_b = gen_b->data + ith*packet_size;
-    for (size_t i = 0; i < packet_size; i++)
-    {
+    fprintf(stderr, "Frame diff in detail:\n");
+    for (size_t i = 0; i < packet_size; i++){
         if(data_a[i] != data_b[i])
-            printf("%zu: %i != %i\n", i, data_a[i], data_b[i]);
+            fprintf(stderr, "%zu: %i != %i\n", i, data_a[i], data_b[i]);
     }
-    
+}
+void print_ith_frame_ab(const struct generation *gen_a, const struct generation *gen_b, size_t packet_size, size_t i){
+    char *a = malloc(sizeof(char)*packet_size+1);
+    char *b = malloc(sizeof(char)*packet_size+1);
+    memcpy(a, gen_a->data + i*packet_size, packet_size);
+    memcpy(b, gen_b->data + i*packet_size, packet_size);
+    a[packet_size] = '\0';
+    b[packet_size] = '\0';
+    fprintf(stderr, "Packet a: %s\n", a);
+    fprintf(stderr, "Packet b: %s\n", b);
 }
 
 
@@ -182,8 +191,6 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t created_packets; 
     size_t consumed_packets; 
     size_t transmitted_packets; 
-    // TODO: maybe randomly choose gftype
-    // enum MOEPGF_TYPE gftype = MOEPGF256;
     int re_val;
 
     set_seed(seed);
@@ -219,38 +226,21 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
                     // check if generations match
                     if(memcmp(gen_a->data + consumed_packets*packet_size, gen_b->data + consumed_packets*packet_size, packet_size) != 0){
                         fprintf(stderr, "Generations do not match!\n");
+                        print_ith_frame_ab(gen_a, gen_b, packet_size, i);
                         print_pkt_diff(gen_a, gen_b, consumed_packets, packet_size);
-                        char *a = malloc(sizeof(char)*packet_size+1);
-                        char *b = malloc(sizeof(char)*packet_size+1);
-                        memcpy(a, gen_a->data + i*packet_size, packet_size);
-                        memcpy(b, gen_b->data + i*packet_size, packet_size);
-                        a[packet_size] = '\0';
-                        b[packet_size] = '\0';
-                        fprintf(stderr, "Packet a: %s\n", a);
-                        fprintf(stderr, "Packet b: %s\n", b);
-
-                        free_gen(gen_a);
-                        free_gen(gen_b);
-                        rlnc_block_free(rlnc_block_a);
-                        rlnc_block_free(rlnc_block_b);
+                        free_everything(gen_a, gen_b, rlnc_block_a, rlnc_block_b);
                         return -1;
                     }
                     // the next packet could be decoded and is in gen_b
                     consumed_packets++;
                 }
             }
-
             // TODO: log rank of the matrix
         }
         
         if(!cmp_gen(gen_a, gen_b)){
-            // TODO print diff of generation -> or just mis matched packets
-            // maybe do this check even at packet basis
             fprintf(stderr, "Generations do not match! This should not happen as they are compared packet-wise before\n");
-            free_gen(gen_a);
-            free_gen(gen_b);
-            rlnc_block_free(rlnc_block_a);
-            rlnc_block_free(rlnc_block_b);
+            free_everything(gen_a, gen_b, rlnc_block_a, rlnc_block_b);
             return -1;
         }
 
