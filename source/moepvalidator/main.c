@@ -52,7 +52,8 @@ static char doc[] = "validation tool for the moeprlcn library";
 static struct argp argp = {
     .options = options, .parser = parse_opt, .args_doc = 0, .doc = doc};
 
-struct arguments {
+struct arguments
+{
     int gftype;
     size_t generation_size;
     size_t nr_iterations;
@@ -62,65 +63,68 @@ struct arguments {
     bool verbose;
 } args;
 
-static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+static error_t parse_opt(int key, char *arg, struct argp_state *state)
+{
     struct arguments *args = state->input;
     char *endptr = NULL;
 
-    switch (key) {
-        case 'f':
-            args->gftype = strtol(arg, &endptr, 0);
-            if ((args->gftype < 0 || args->gftype > 3) ||
-                (!endptr && endptr != arg + strlen(arg)))
-                argp_failure(state, 1, errno, "Invalid field size: %s", arg);
-            break;
+    switch (key)
+    {
+    case 'f':
+        args->gftype = strtol(arg, &endptr, 0);
+        if ((args->gftype < 0 || args->gftype > 3) ||
+            (!endptr && endptr != arg + strlen(arg)))
+            argp_failure(state, 1, errno, "Invalid field size: %s", arg);
+        break;
 
-        case 'g':
-            args->generation_size = strtol(arg, &endptr, 0);
-            if (!endptr && endptr != arg + strlen(arg))
-                argp_failure(state, 1, errno, "Invalid generation size: %s",
-                             arg);
-            break;
+    case 'g':
+        args->generation_size = strtol(arg, &endptr, 0);
+        if (!endptr && endptr != arg + strlen(arg))
+            argp_failure(state, 1, errno, "Invalid generation size: %s",
+                         arg);
+        break;
 
-        case 'i':
-            args->nr_iterations = strtol(arg, &endptr, 0);
-            if (!endptr && endptr != arg + strlen(arg))
-                argp_failure(state, 1, errno,
-                             "Invalid number of iterations: %s", arg);
-            break;
+    case 'i':
+        args->nr_iterations = strtol(arg, &endptr, 0);
+        if (!endptr && endptr != arg + strlen(arg))
+            argp_failure(state, 1, errno,
+                         "Invalid number of iterations: %s", arg);
+        break;
 
-        case 'l':
-            args->loss_rate = strtol(arg, &endptr, 0);
-            if (!endptr && endptr != arg + strlen(arg))
-                argp_failure(state, 1, errno, "Invalid loss rate: %s", arg);
+    case 'l':
+        args->loss_rate = strtol(arg, &endptr, 0);
+        if (!endptr && endptr != arg + strlen(arg))
+            argp_failure(state, 1, errno, "Invalid loss rate: %s", arg);
 
-            break;
+        break;
 
-        case 'p':
-            args->packet_size = strtol(arg, &endptr, 0);
-            if (!endptr && endptr != arg + strlen(arg))
-                argp_failure(state, 1, errno, "Invalid packet size: %s", arg);
-            break;
+    case 'p':
+        args->packet_size = strtol(arg, &endptr, 0);
+        if (!endptr && endptr != arg + strlen(arg))
+            argp_failure(state, 1, errno, "Invalid packet size: %s", arg);
+        break;
 
-        case 's':
-            args->seed = strtol(arg, &endptr, 0);
-            if (!endptr && endptr != arg + strlen(arg))
-                argp_failure(state, 1, errno, "Invalid seed: %s", arg);
-            break;
+    case 's':
+        args->seed = strtol(arg, &endptr, 0);
+        if (!endptr && endptr != arg + strlen(arg))
+            argp_failure(state, 1, errno, "Invalid seed: %s", arg);
+        break;
 
-        case 'v':
-            args->verbose = true;
-            break;
+    case 'v':
+        args->verbose = true;
+        break;
 
-        default:
-            return ARGP_ERR_UNKNOWN;
+    default:
+        return ARGP_ERR_UNKNOWN;
     }
     return 0;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     memset(&args, 0, sizeof(args));
     // TODO: realistic default values
-    args.gftype = 3;  // GF256
+    args.gftype = 3; // GF256
     args.generation_size = 100;
     args.nr_iterations = 10;
     args.loss_rate = 0.0;
@@ -139,10 +143,13 @@ int main(int argc, char **argv) {
         args.loss_rate, args.packet_size, args.seed,
         args.verbose);
 
-    if(validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype)==0){
+    if (validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype) == 0)
+    {
         printf("Validation program run through without errors!\n");
         return 0;
-    } else {
+    }
+    else
+    {
         printf("Validation program had some errors, see the log above for more information!\n");
         return -1;
     }
