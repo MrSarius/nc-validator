@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -74,8 +73,9 @@ void assert(bool exp, const char *format, ...){
     if (!exp){
         va_list args;
         va_start(args, format);
-        fprintf(stderr, format, args);
+        vfprintf(stderr, format, args);
         va_end(args);
+        fprintf(stderr, "Exiting...\n");
         fflush(stderr);
         fflush(stdout);
         exit(-1);
@@ -118,6 +118,8 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
     uint8_t *dst = malloc(sizeof(uint8_t)*sz);
 
     ssize_t re = rlnc_block_encode(rlnc_block_a, dst, sz, 0);
+    // assert(re == sz, "transmit_A2B: BAAAD\n");
+    assert(!(re > sz && re != -1), "transmit_A2B: rlnc_block_encode returned incoherent size!\n");
     assert(!(created_packets == 0 && re != -1), "Return of rlnc_block_encode in transmit_A2B was %i instead of -1 (no packets previously added)", re);
     
     float r = randf();
@@ -126,19 +128,23 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
         free(dst);
         return -1;
     }
-    re = rlnc_block_decode(rlnc_block_b, dst, sz);
+    re = rlnc_block_decode(rlnc_block_b, dst, re);
     assert(re == 0, "Return of rlnc_block_decode in transmit_A2B was %i instead of 0", re);
 
     // moeprln copies data so we have to free it
     free(dst);
     return 0;
 }
-
+int asdf = 0;
 int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets){
     size_t sz = ((packet_size/MEMORY_ALIGNMENT)+2)*MEMORY_ALIGNMENT;
     uint8_t *dst = malloc(sizeof(uint8_t)*sz);
+    // if (asdf == 1389)
+    //     printf("asdf");
 
     ssize_t	re = rlnc_block_get(rlnc_block_b, (int)consumed_packets, (uint8_t*) dst, sz);
+    assert(re <= sz, "consume_at_B: rlnc_block_get returned incoherent size! max=%lu, return=%li\n", sz, re);
+    asdf++;
 
     if(re == 0){
         // no new packet could be decoded
@@ -146,7 +152,7 @@ int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t pac
         return -1;
     }
     // if next packet could be decoded then the returned data should have the size of a packet
-    assert(re == packet_size, "consume_at_B\n");
+    assert(re == packet_size, "consume_at_B: return size is unequal packet size! packet=%lu, return=%li\n", packet_size, re);
     memcpy(gen_b->data + consumed_packets*packet_size, dst, re);
     gen_b->n_packets++;
     free(dst);
