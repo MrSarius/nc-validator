@@ -1,3 +1,5 @@
 */**.pdf
 */**/build
-*/**.o
+*/**/*.o
+*/**/moep80211ncm
+*/**/libmoep
