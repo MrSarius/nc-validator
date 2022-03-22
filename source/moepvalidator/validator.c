@@ -159,6 +159,11 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
 
     assert(!(re > sz && re != -1), "transmit_A2B: rlnc_block_encode returned incoherent size!\n");
     assert(!(created_packets == 0 && re != -1), "Return of rlnc_block_encode in transmit_A2B was %i instead of -1 (no packets previously added)", re);
+    if(re == -1){
+        // empty block
+        free(dst);
+        return -1;
+    }
 
     r = randf();
     if (r <= loss_rate)
@@ -241,6 +246,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t transmitted_packets;
     int re_val;
     size_t i;
+    size_t all_linear_independent = 0;
 
     set_seed(seed);
     for (i = 0; i < iterations; i++)
@@ -293,6 +299,9 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
                 }
             }
             // TODO: log rank of the matrix
+        }
+        if(transmitted_packets == generation_size){
+            all_linear_independent++;
         }
 
         if (!cmp_gen(gen_a, gen_b))
