@@ -196,7 +196,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     set_seed(seed);
     for (i = 0; i < iterations; i++)
     {
-        log("Starting iteration #%i\n", (int)i);
+        logger("Starting iteration #%i\n", (int)i);
         created_packets = 0;
         consumed_packets = 0;
         transmitted_packets = 0;

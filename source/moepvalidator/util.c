@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "util.h"
 
@@ -16,7 +17,7 @@ bool verbose = false;
 
 void setVerbose(bool v) { verbose = v; }
 
-void log(const char *format, ...)
+void logger(const char *format, ...)
 {
     if (verbose)
     {
