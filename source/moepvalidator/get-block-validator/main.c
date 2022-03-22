@@ -6,30 +6,23 @@
 #include <unistd.h>
 
 #define ALLIGNMENT 32
-#define GEN_SIZE 100
+#define GEN_SIZE 89
 #define FRAME_SIZE 1500
-#define GF_TYPE 1  // GF265
-#define AMOUNT_TRANSMISSIONS 100
+#define GF_TYPE 3  // GF265
+#define AMOUNT_TRANSMISSIONS GEN_SIZE - 1 //transmissions per iteration
+#define ITERATIONS 100
 
-bool check_if_fully_decoded(rlnc_block_t b) {
-    size_t sz = ((FRAME_SIZE / ALLIGNMENT) + 2) * ALLIGNMENT;  // here we need space for the decoded data only.
-                               // So no coefficients
-    // BUT WHY DO WE NEED +2 and not +1... Just found out by trying
-    uint8_t *dst = malloc(sizeof(uint8_t) * sz);
-
-    for (size_t i = 0; i < GEN_SIZE; i++) {
-        int tmp = rlnc_block_get(b, i, dst, sz);
-        if (tmp == 0) {  // if one is zero, not all pkts in generation have been decoded yet
-            printf("Generation Could not be decoded.\n");
-            return false;
-        }
-        printf("pkt decoded: %d\n", tmp);
-    }
-    printf("Generation Decoded yeahh!\n");
-    return true;
-}
+void iterate();
+bool check_if_fully_decoded(rlnc_block_t b);
 
 int main() {
+    for (size_t i = 0; i < ITERATIONS; i++){
+        printf("Start Iteration #%ld: ", i);
+        iterate();
+    }
+}
+
+void iterate(){
     // Init Block A
     rlnc_block_t rlnc_block_a =
         rlnc_block_init(GEN_SIZE, FRAME_SIZE, ALLIGNMENT, GF_TYPE);
@@ -77,4 +70,25 @@ int main() {
         i++;
     }
     check_if_fully_decoded(rlnc_block_b);
+}
+
+bool check_if_fully_decoded(rlnc_block_t b) {
+    size_t sz = ((FRAME_SIZE / ALLIGNMENT) + 2) * ALLIGNMENT;  // here we need space for the decoded data only.
+                               // So no coefficients
+    // BUT WHY DO WE NEED +2 and not +1... Just found out by trying
+    uint8_t *dst = malloc(sizeof(uint8_t) * sz);
+
+    for (size_t i = 0; i < GEN_SIZE; i++) {
+        int tmp = rlnc_block_get(b, i, dst, sz);
+        if (tmp == 0) {  // if one is zero, not all pkts in generation have been decoded yet
+            printf("Generation Could not be decoded.\n");
+            return false;
+        }
+        if (tmp != FRAME_SIZE){
+            printf("Should Not Happen! Decoded frame bigger than original ones\n");
+        }
+        //printf("pkt decoded: %d\n", tmp);
+    }
+    printf("Generation Decoded yeahh!\n");
+    return true;
 }
