@@ -5,6 +5,20 @@
 
 void setVerbose(bool v);
 
-void logger(const char* format, ...);
+void logger(const char *format, ...);
+
+void assert(bool exp, const char *format, ...);
+
+void set_seed(unsigned int seed);
+
+float randf();
+
+int randint(int from, int to);
+
+uint8_t randbyte();
+
+void randbytes(size_t n, uint8_t *a);
+
+size_t aligned_length(size_t len, size_t alignment);
 
 #endif

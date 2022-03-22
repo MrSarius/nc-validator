@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
 
-    logger(
+    log(
         "##### Parameters: #####\nField Size: %ld\nGeneration "
         "Size: %ld\nNumber of Iterations: %ld\nLoss Rate: %f\nPacket Size: "
         "%ld\nSeed: %d\nVerbose: %d\n\n",

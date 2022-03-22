@@ -42,47 +42,6 @@ void free_everything(struct generation *gen_a, struct generation *gen_b, rlnc_bl
     rlnc_block_free(rlnc_block_b);
 }
 
-void set_seed(unsigned int seed)
-{
-    srandom(seed);
-}
-
-float randf()
-{
-    long int r;
-
-    r = random();
-    return (float)r / (RAND_MAX);
-}
-
-int randint(int from, int to)
-{
-    long int r;
-    double diff;
-
-    r = random();
-    diff = to - from;
-    return (int)(diff * r / (RAND_MAX) + from);
-}
-uint8_t randbyte()
-{
-    return (uint8_t)randint(0, 255);
-}
-
-void randbytes(size_t n, uint8_t *a)
-{
-    size_t i;
-    for (i = 0; i < n; i++)
-    {
-        a[i] = randbyte();
-    }
-}
-
-size_t aligned_length(size_t len, size_t alignment)
-{
-    return (((len + alignment - 1) / alignment) * alignment);
-}
-
 bool cmp_gen(const struct generation *gen_a, const struct generation *gen_b)
 {
     if (gen_a->packet_size != gen_b->packet_size || gen_a->n_packets != gen_b->n_packets)
@@ -91,21 +50,6 @@ bool cmp_gen(const struct generation *gen_a, const struct generation *gen_b)
         return true;
     else
         return false;
-}
-
-void assert(bool exp, const char *format, ...)
-{
-    if (!exp)
-    {
-        va_list args;
-        va_start(args, format);
-        vfprintf(stderr, format, args);
-        va_end(args);
-        fprintf(stderr, "Exiting...\n");
-        fflush(stderr);
-        fflush(stdout);
-        exit(-1);
-    }
 }
 
 struct generation *empty_generation(size_t packet_size, size_t generation_size)
@@ -128,7 +72,7 @@ struct generation *create_generation(size_t packet_size, size_t generation_size)
 {
     size_t len;
     struct generation *gen_new;
-    
+
     len = packet_size * generation_size;
     gen_new = empty_generation(packet_size, generation_size);
     randbytes(len, gen_new->data);
@@ -159,7 +103,8 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
 
     assert(!(re > sz && re != -1), "transmit_A2B: rlnc_block_encode returned incoherent size!\n");
     assert(!(created_packets == 0 && re != -1), "Return of rlnc_block_encode in transmit_A2B was %i instead of -1 (no packets previously added)", re);
-    if(re == -1){
+    if (re == -1)
+    {
         // empty block
         free(dst);
         return -1;
@@ -209,7 +154,7 @@ void print_pkt_diff(const struct generation *gen_a, const struct generation *gen
 {
     uint8_t *data_a;
     uint8_t *data_b;
-    
+
     data_a = gen_a->data + ith * packet_size;
     data_b = gen_b->data + ith * packet_size;
     fprintf(stderr, "Frame diff in detail:\n");
@@ -251,7 +196,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     set_seed(seed);
     for (i = 0; i < iterations; i++)
     {
-        printf("starting iteration #%i\n", (int)i);
+        log("Starting iteration #%i\n", (int)i);
         created_packets = 0;
         consumed_packets = 0;
         transmitted_packets = 0;
@@ -300,7 +245,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             }
             // TODO: log rank of the matrix
         }
-        if(transmitted_packets == generation_size){
+        if (transmitted_packets == generation_size)
+        {
             all_linear_independent++;
         }
 
