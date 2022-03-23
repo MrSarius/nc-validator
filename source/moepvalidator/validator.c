@@ -16,6 +16,7 @@
 
 #include "validator.h"
 #include "util.h"
+#include "statistics.h"
 
 #define MEMORY_ALIGNMENT 32
 
@@ -179,7 +180,7 @@ void print_ith_frame_ab(const struct generation *gen_a, const struct generation 
     fprintf(stderr, "Packet b: %s\n", b);
 }
 
-int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype)
+int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype, bool csv)
 {
     struct generation *gen_a;
     struct generation *gen_b;
@@ -264,6 +265,10 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         // rlnc_block_reset(rlnc_block_b);
         rlnc_block_free(rlnc_block_a);
         rlnc_block_free(rlnc_block_b);
+        size_t frames_dropped; //TODO BEN dropped_frames
+        if (csv)
+            frames_dropped = 0;
+            update_statistics(i, transmitted_packets, consumed_packets, 0);
     }
     return 0;
 }

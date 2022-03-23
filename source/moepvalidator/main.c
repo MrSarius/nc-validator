@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "main.h"
 #include "util.h"
 #include "validator.h"
 #include "statistics.h"
@@ -59,17 +60,7 @@ static char doc[] = "validation tool for the moeprlcn library";
 static struct argp argp = {
     .options = options, .parser = parse_opt, .args_doc = 0, .doc = doc};
 
-struct arguments
-{
-    int gftype;
-    size_t generation_size;
-    size_t nr_iterations;
-    float loss_rate;
-    size_t packet_size;
-    unsigned int seed;
-    bool verbose;
-    bool csv;
-} args;
+struct arguments args;
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
@@ -149,7 +140,7 @@ int main(int argc, char **argv)
     setVerbose(args.verbose);
 
     if (args.csv){
-        init_stats();
+        init_stats(args);
     }
 
     logger(
@@ -160,7 +151,7 @@ int main(int argc, char **argv)
         args.loss_rate, args.packet_size, args.seed,
         args.verbose);
 
-    if (validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype) == 0)
+    if (validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype, args.csv) == 0)
     {
         printf("Validation program run through without errors!\n");
         return 0;
