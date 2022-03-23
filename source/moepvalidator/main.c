@@ -5,8 +5,14 @@
 
 #include "util.h"
 #include "validator.h"
+#include "statistics.h"
 
 static struct argp_option options[] = {
+    {.name = "csv_stats",
+     .key = 'c',
+     .arg = 0,
+     .flags = 0,
+     .doc = "Print statistics to CSV file in current working directory"},
     {.name = "field_size",
      .key = 'f',
      .arg = "SIZE",
@@ -62,6 +68,7 @@ struct arguments
     size_t packet_size;
     unsigned int seed;
     bool verbose;
+    bool csv;
 } args;
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state)
@@ -71,6 +78,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 
     switch (key)
     {
+    case 'c':
+        args->csv = true;
+        break;
+
     case 'f':
         args->gftype = strtol(arg, &endptr, 0);
         if ((args->gftype < 0 || args->gftype > 3) ||
@@ -132,9 +143,14 @@ int main(int argc, char **argv)
     args.packet_size = 1500;
     args.seed = 42;
     args.verbose = false;
+    args.csv = false;
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
+
+    if (args.csv){
+        init_stats();
+    }
 
     logger(
         "##### Parameters: #####\nField Size: %ld\nGeneration "
