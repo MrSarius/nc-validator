@@ -194,7 +194,6 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t all_linear_independent = 0;
     size_t needed_transmission;
     int tmp_rank;
-    size_t amount_dependent;
 
     set_seed(seed);
     for (i = 0; i < iterations; i++)
@@ -204,7 +203,6 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         consumed_packets = 0;
         transmitted_packets = 0;
         needed_transmission = 0;
-        amount_dependent = 0;
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
         rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
@@ -220,19 +218,12 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             {
                 // TODO: check here whether transmission is necesary -> look at rank
                 tmp_rank = rlnc_block_rank_decode(rlnc_block_b);
-                // logger("rank: %i\n", tmp_rank);
                 re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, created_packets);
                 if (re_val == 0)
                 {
                     transmitted_packets++;
-                    if(tmp_rank < (int)generation_size){
+                    if (tmp_rank < (int)generation_size)
                         needed_transmission++;
-                        // logger("trransmitterd\n");
-                        if(tmp_rank == rlnc_block_rank_decode(rlnc_block_b) ){
-                            // logger("dependent\n");
-                            amount_dependent++;
-                        }
-                    }
                 }
             }
             else
@@ -263,11 +254,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         }
         if (needed_transmission == generation_size)
         {
-            assert(amount_dependent == 0, "incoherent depente\n");
             all_linear_independent++;
         }
-
-        printf("needed transmitted vs gen: %lu %lu\n", needed_transmission, generation_size);
 
         if (!cmp_gen(gen_a, gen_b))
         {
@@ -284,7 +272,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         rlnc_block_free(rlnc_block_a);
         rlnc_block_free(rlnc_block_b);
     }
-    logger("Chance of linear undependency: %.2f%%\n", (100.0*all_linear_independent)/iterations);
-    logger("Should be: %.2lf\n", 100.0*prop_linear_independent(generation_size, gftype));
+    logger("Chance of linear undependency: %.2f%%\n", (100.0 * all_linear_independent) / iterations);
+    logger("Should be: %.2lf\n", 100.0 * prop_linear_independent(generation_size, gftype));
     return 0;
 }

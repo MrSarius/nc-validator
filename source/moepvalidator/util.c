@@ -29,7 +29,8 @@ void logger(const char *format, ...)
     }
 }
 
-double prop_linear_independent(size_t generation_size, int gftype){
+double prop_linear_independent(size_t generation_size, int gftype)
+{
     int q;
     size_t i;
     double out = 1.0;
@@ -48,16 +49,14 @@ double prop_linear_independent(size_t generation_size, int gftype){
     case 3:
         q = 256;
         break;
-    
+
     default:
         q = 256;
         break;
     }
     for (i = 1; i <= generation_size; i++)
     {
-        /* code */
-        // printf("%f\n", pow(q, i-1));
-        out *= (1 - pow(q, i-1) / pow(q, generation_size));
+        out *= (1 - pow(q, i - 1) / pow(q, generation_size));
     }
     return out;
 }
