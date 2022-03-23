@@ -7,6 +7,8 @@ void setVerbose(bool v);
 
 void logger(const char *format, ...);
 
+double prop_linear_independent(size_t generation_size, int gftype);
+
 void assert(bool exp, const char *format, ...);
 
 void set_seed(unsigned int seed);
