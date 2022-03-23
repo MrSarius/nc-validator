@@ -117,7 +117,7 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
         free(dst);
         return -1;
     }
-    re = rlnc_block_decode(rlnc_block_b, dst, sz);
+    re = rlnc_block_decode(rlnc_block_b, dst, re);
     assert(re == 0, "Return of rlnc_block_decode in transmit_A2B was %i instead of 0", re);
 
     // moeprln copies data so we have to free it
