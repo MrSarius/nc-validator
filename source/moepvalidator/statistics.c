@@ -8,11 +8,15 @@ FILE *fptr;
 struct arguments args;
 
 void init_stats(struct arguments a){
+    if (!a.csv){
+        return;
+    }
+
     char filename[100];
-     time_t t;
-     struct tm *timeptr;
-     t = time(NULL);
-     timeptr = localtime(&t);
+    time_t t;
+    struct tm *timeptr;
+    t = time(NULL);
+    timeptr = localtime(&t);
 
     strftime(filename, sizeof(filename), "statistics_%d-%m-%y-%H-%M.csv", timeptr);
      
@@ -22,11 +26,13 @@ void init_stats(struct arguments a){
        exit(1);
    }
     args = a;
-    fprintf(fptr, "iteration,gf,gen_size,frame_size,frames_sent,frames_received,packets_droped,linear_dependent,frames_dropped,loss_rate\n");
+    fprintf(fptr, "iteration,gf,gen_size,frame_size,frames_sent,frames_received,packets_dropped,linear_dependent,frames_dropped,loss_rate\n");
 }
 
 void close_stats(){
-    fclose(fptr);
+    if (fptr){
+        fclose(fptr);
+    }
 }
 
 void update_statistics(size_t i, size_t frames_sent, size_t frames_received, size_t frames_dropped){

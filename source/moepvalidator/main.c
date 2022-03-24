@@ -138,10 +138,7 @@ int main(int argc, char **argv)
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);
-
-    if (args.csv){
-        init_stats(args);
-    }
+    init_stats(args);
 
     logger(
         "##### Parameters: #####\nField Size: %ld\nGeneration "
@@ -151,7 +148,9 @@ int main(int argc, char **argv)
         args.loss_rate, args.packet_size, args.seed,
         args.verbose);
 
-    if (validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype, args.csv) == 0)
+    bool valid = validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype, args.csv) == 0;
+    close_stats();
+    if (valid)
     {
         printf("Validation program run through without errors!\n");
         return 0;
