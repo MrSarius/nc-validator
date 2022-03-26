@@ -116,7 +116,7 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
     {
         // simulated packet loss
         free(dst);
-        return -1;
+        return -2;
     }
     re = rlnc_block_decode(rlnc_block_b, dst, re);
     assert(re == 0, "Return of rlnc_block_decode in transmit_A2B was %i instead of 0", re);
@@ -189,19 +189,18 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     rlnc_block_t rlnc_block_b;
     size_t frames_created;
     size_t frames_consumed;
-    size_t frames_transmitted;
+    size_t frames_delivered;
     size_t frames_dropped;
     int re_val;
     size_t i;
-    size_t all_linear_independent = 0;
 
     set_seed(seed);
     for (i = 0; i < iterations; i++)
     {
-        logger("Starting iteration #%i\n", (int)i);
+        logger("Starting iteration #%ld\n", i);
         frames_created = 0;
         frames_consumed = 0;
-        frames_transmitted = 0;
+        frames_delivered = 0;
         frames_dropped = 0;
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
@@ -217,10 +216,11 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             else if (r > 1. / 3 && r < 2. / 3)
             {
                 re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, frames_created);
-                if (re_val == 0) //TODO BEN this is simply not working. Leads to more transmitted than created frames sometimes
+                if (re_val == 0)
                 {
-                    frames_transmitted++;
-                }else{
+                    frames_delivered++;
+                }else if (re_val == -2)
+                {
                     frames_dropped++;
                 }
             }
@@ -249,10 +249,6 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             }
             // TODO: log rank of the matrix
         }
-        if (frames_transmitted == generation_size)
-        {
-            all_linear_independent++;
-        }
 
         if (!cmp_gen(gen_a, gen_b))
         {
@@ -268,7 +264,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         // rlnc_block_reset(rlnc_block_b);
         rlnc_block_free(rlnc_block_a);
         rlnc_block_free(rlnc_block_b);
-        update_statistics(i, frames_transmitted, frames_consumed, frames_dropped);
+        logger("Iteration #%ld successfull.\n\n", i);
+        update_statistics(i, frames_delivered, frames_dropped);
     }
     return 0;
 }

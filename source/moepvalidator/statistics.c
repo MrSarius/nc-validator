@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "main.h"
+#include "statistics.h"
 
 FILE *fptr;
 struct arguments args;
@@ -18,7 +18,7 @@ void init_stats(struct arguments a){
     t = time(NULL);
     timeptr = localtime(&t);
 
-    strftime(filename, sizeof(filename), "statistics_%d-%m-%y-%H-%M.csv", timeptr);
+    strftime(filename, sizeof(filename), "statistics_%d-%m-%y-%H-%M-%S.csv", timeptr);
      
     size_t strftime(char *s, size_t maxsize, const char *format, const struct tm *timeptr);
     if ((fptr = fopen(filename, "a")) == NULL){
@@ -26,7 +26,7 @@ void init_stats(struct arguments a){
        exit(1);
    }
     args = a;
-    fprintf(fptr, "iteration,gf,gen_size,frame_size,frames_sent,frames_received,packets_dropped,linear_dependent,frames_dropped,loss_rate\n");
+    fprintf(fptr, "iteration,gf,gen_size,frame_size,frames_sent,frames_delivered,frames_dropped,loss_rate,linear_dependent,percentage_linear_dependent\n");
 }
 
 void close_stats(){
@@ -35,9 +35,11 @@ void close_stats(){
     }
 }
 
-void update_statistics(size_t i, size_t frames_sent, size_t frames_received, size_t frames_dropped){
+void update_statistics(size_t i, size_t frames_delivered, size_t frames_dropped){
     if (fptr){
-        fprintf(fptr, "%ld,%d,%ld,%ld,%ld,%ld,%ld,%f\n", i, args.gftype, args.generation_size, args.packet_size, frames_sent, frames_received, frames_dropped, args.loss_rate);
-        //TODO BEN Pass lost frames to update_statistics()
+        size_t frames_sent = frames_delivered + frames_dropped;
+        size_t linear_dependent = frames_delivered - args.generation_size;
+        float percentage_linear_dependent = (linear_dependent*1.0/frames_delivered)*100;
+        fprintf(fptr, "%ld,%d,%ld,%ld,%ld,%ld,%ld,%f,%ld,%f\n", i, args.gftype, args.generation_size, args.packet_size, frames_sent, frames_delivered, frames_dropped, args.loss_rate, linear_dependent, percentage_linear_dependent);
     }
 }
