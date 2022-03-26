@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include <math.h>
 
 #include "util.h"
 
@@ -27,6 +28,38 @@ void logger(const char *format, ...)
         vprintf(format, args);
         va_end(args);
     }
+}
+
+double prop_linear_independent(size_t generation_size, int gftype)
+{
+    int q;
+    size_t i;
+    double out = 1.0;
+
+    switch (gftype)
+    {
+    case 0:
+        q = 2;
+        break;
+    case 1:
+        q = 4;
+        break;
+    case 2:
+        q = 16;
+        break;
+    case 3:
+        q = 256;
+        break;
+
+    default:
+        q = 256;
+        break;
+    }
+    for (i = 1; i <= generation_size; i++)
+    {
+        out *= (1 - pow(q, i - 1) / pow(q, generation_size));
+    }
+    return out;
 }
 
 void assert(bool exp, const char *format, ...)

@@ -193,6 +193,9 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t frames_dropped;
     int re_val;
     size_t i;
+    size_t all_linear_independent = 0;
+    size_t needed_transmission;
+    int tmp_rank;
 
     set_seed(seed);
     for (i = 0; i < iterations; i++)
@@ -202,6 +205,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         frames_consumed = 0;
         frames_delivered = 0;
         frames_dropped = 0;
+        needed_transmission = 0;
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
         rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
@@ -215,10 +219,14 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             }
             else if (r > 1. / 3 && r < 2. / 3)
             {
+<<<<<<< source/moepvalidator/validator.c
+                tmp_rank = rlnc_block_rank_decode(rlnc_block_b);
                 re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, frames_created);
                 if (re_val == 0)
                 {
                     frames_delivered++;
+                    if (tmp_rank < (int)generation_size)
+                        needed_transmission++;
                 }else if (re_val == -2)
                 {
                     frames_dropped++;
@@ -249,6 +257,10 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             }
             // TODO: log rank of the matrix
         }
+        if (needed_transmission == generation_size)
+        {
+            all_linear_independent++;
+        }
 
         if (!cmp_gen(gen_a, gen_b))
         {
@@ -267,5 +279,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         logger("Iteration #%ld successfull.\n\n", i);
         update_statistics(i, frames_delivered, frames_dropped);
     }
+    logger("Chance of linear undependency: %.2f%%\n", (100.0 * all_linear_independent) / iterations);
+    logger("Should be: %.2lf\n", 100.0 * prop_linear_independent(generation_size, gftype));
     return 0;
 }

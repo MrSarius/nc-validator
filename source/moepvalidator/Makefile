@@ -11,7 +11,7 @@ TARGET_DEBUG:=$(OUT_DEBUG)/main
 OBJS_DEBUG:=$(OUT_DEBUG)/main.o $(OUT_DEBUG)/statistics.o $(OUT_DEBUG)/validator.o $(OUT)/util.o
 
 all: $(OBJS)
-	$(CC) $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET) $(OBJS) -lmoeprlnc -lmoep -lmoepgf
+	$(CC) $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET) $(OBJS) -lmoeprlnc -lmoep -lmoepgf -lm
 
 $(OUT)/%.o: %.c
 	@mkdir -p $(OUT)
@@ -21,7 +21,7 @@ $(OUT)/%.o: %.c
 # -O0 removes compiler optimization -> fixes <optimized out> for debugger variables
 # However, this might lead to different code execution for debug and production code!
 debug: $(OBJS_DEBUG)
-	$(CC) -g $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET_DEBUG) $(OBJS_DEBUG) -lmoeprlnc -lmoep -lmoepgf -O0
+	$(CC) -g $(DYNAMICLIBS) $(CFLAGS) -o $(TARGET_DEBUG) $(OBJS_DEBUG) -lmoeprlnc -lmoep -lmoepgf -lm -O0
 
 $(OUT_DEBUG)/%.o: %.c
 	@mkdir -p $(OUT_DEBUG)
