@@ -219,7 +219,6 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             }
             else if (r > 1. / 3 && r < 2. / 3)
             {
-<<<<<<< source/moepvalidator/validator.c
                 tmp_rank = rlnc_block_rank_decode(rlnc_block_b);
                 re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, frames_created);
                 if (re_val == 0)
