@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 #include <math.h>
 
 #include "util.h"
