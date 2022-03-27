@@ -1,0 +1,185 @@
+%\documentclass[a4paper,german,10pt]{tumarticle}
+\documentclass[a4paper,english,10pt]{tumarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage{tumfonts}
+\usepackage{tumlocale}
+\usepackage{tumcmd}
+\usepackage{booktabs}
+\usepackage{eurosym}
+\usepackage{enumitem}
+\usepackage{subfig}
+\usepackage[font=footnotesize,labelfont=bf]{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{wrapfig}
+\usepackage{pgfgantt}
+\usepackage{adjustbox}
+\usepackage{pdflscape}
+\usepackage{hyperref}
+\usepackage{listings}
+\lstset{ 
+  backgroundcolor=\color{white},
+  breakatwhitespace=false,
+  breaklines=true,
+  frame=single,
+  keepspaces=true,
+  keywordstyle=\color{blue},
+  language=Python,
+  numbers=left,
+  numbersep=5pt,
+  rulecolor=\color{black},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+}
+
+\usetikzlibrary{decorations.text}
+
+\usepackage{siunitx}
+\sisetup{detect-weight=true, detect-family=true, per-mode=symbol}
+\DeclareSIUnit\year{a}
+\DeclareSIUnit{\EUR}{\text{EUR}}
+\DeclareSIUnit{\week}{Woche}
+
+\def\yes{\textcolor{TUMDarkerGreen}{\large\checkmark}}
+\def\maybe{\textcolor{TUMOrange}{\Large$\mathbit\circ$}}
+\def\no{\textcolor{TUMRed}{\Large\texttimes}}
+
+% Set document title. If no language is supplied, the document language is
+% assumed.
+
+\linespread{1.32}
+%\predisplaypenalty=10000000
+%\floatingpenalty = 20000000
+%\postdisplaypenalty = 2000000
+\widowpenalty=15000
+\setlength{\parindent}{0pt}
+
+
+
+\begin{document}
+
+\begin{center}
+	\bfseries\Large Validation Tool for \texttt{libmoeprlnc}\\[.5\baselineskip]
+\end{center}
+\begin{center}
+	\small Group 6\\
+	\today
+\end{center}
+
+
+\setcounter{tocdepth}{1}
+\renewcommand{\contentsname}{Anlagen}
+%\begin{tableofcontents}
+%\end{tableofcontents}
+
+\renewcommand{\emph}[1]{%
+	\textcolor{TUMBlue}{#1}%
+}
+
+
+% Motivation und Abstract
+\renewcommand{\abstractname}{Abstract}
+\begin{abstract}
+\setlength{\parindent}{0pt}
+\noindent%
+\footnotesize
+
+This project proposes a validating tool for the \texttt{libmoeprlnc} library. 
+This is achieved by calling the main interfaces \texttt{rlnc\_block\_add()}, 
+\texttt{rlnc\_block\_encode()} / \texttt{rlnc\_block\_decode()} and \texttt{rlnc\_block\_get()} in a 
+random order to find even very hard to find errors in one by running the tool through 
+many iterations.\\
+//TODO: Außerdem konnte die lib per statistischer auswertung validert werden\\
+//TODO: Außerdem konnten die folgenden bugs gefunden werden-> Decode wirft 
+keinen Fehler, wenn unlogischer Buffer übergeben wird (wollen wir das erwähnen)
+
+\end{abstract}
+
+\section{Introduction}
+
+The \texttt{libmoeprlnc} library implements the encoding and decoding of generations in
+random linear network coding. It is based on the \texttt{libmoepgf} library, which in turn
+implements the required Galois Field operations.
+
+The \texttt{libmoeprlnc} (also referred to as 'rlnc library' in the following) does not yet have an 
+adequate testing suit. Our group proposes a validation tool for the rlnc library which mainly tries to 
+find expected bugs by executing the libraries functions in a random order.
+This document documents of the proposed tool, as well as the results found during our evaluation.
+
+\section{Approach}\label{app}
+
+\subsection{Brief Description of the RLNC library}\label{app:desc}
+The following will briefly describe the functionality of the main interfaces, the RLNC library offers.
+This is required to better understand the proposed approach by this project.
+\\\\
+First of all, the library uses a data structure called \texttt{rlnc\_block} which is the libraries representation of a generation.
+Since our tool also has an abstraction of a generation, in the following the term "rlnc\_block" describes this libraries data structure and 
+"generation" the abstraction of our tool. Besides this data structure, the library offers four main interfaces: 
+\texttt{rlnc\_block\_add()}, \texttt{rlnc\_block\_encode()}, \texttt{rlnc\_block\_decode()} and \texttt{rlnc\_block\_get()}.
+
+\begin{itemize}
+    \item \underline{\texttt{rlnc\_block\_add(rlnc\_block\_t b, int pv, const uint8\_t *data, size\_t len)}}\\
+    Reads the data of size \texttt{len} from \texttt{*data} and add it to the \texttt{rlnc\_block} \texttt{b}. Pivot (\texttt{pv}) describes the index of the data in the generation. 
+    (TODO @Tobi ist das richtig mit dem pivot?). 
+
+    \item \underline{\texttt{rlnc\_block\_encode(const rlnc\_block\_t b, uint8\_t *dst, size\_t maxlen, int flags)}}\\
+    Encodes data from the \texttt{rlnc\_block} \texttt{b} pseudo randomly (TODO: drauf eingehen warum das 'pseudo' hier wichtig sein könnte) and returns the coded data at \texttt{*dst}. 
+    \texttt{maxlen} describes the aligned length of the buffer \texttt{dst}. The alignment is chosen at the initialization of the \texttt{rlnc\_block}.
+    
+    \item \underline{\texttt{rlnc\_block\_decode(rlnc\_block\_t b, const uint8\_t *src, size\_t len)}}\\
+    Receives coded data in \texttt{src} which is of length \texttt{len} and adds it to \texttt{rlnc\_block} \texttt{b}. 
+    Then the \texttt{rlnc\_block} is decoded as far as possible. 
+    Consequently, any linear dependencies that may have arisen are eliminated in this step. If the rank(b) should 
+    be equal to the generation size after the execution of this method, the holder of \texttt{b} can now read the fully decoded generation.
+
+    \item \underline{\texttt{rlnc\_block\_get(rlnc\_block\_t b, int pv, uint8\_t *dst, size\_t maxlen)}}\\
+    If the requested data has already been decoded, the function returns the data of \texttt{rlnc\_block} \texttt{b} at index \texttt{pv} in buffer 
+    \texttt{dst} of size \texttt{maxlen} (aligned).
+  \end{itemize}
+
+\subsection{TODO: HOW TO BUILD?}\label{app:build}
+
+\subsection{TODO: OUR TOOL EXPLAINED}\label{app:expl}
+TODO: Den Programmfluss etwas beschreiben. Wann passiert was und was davon passiert "random".
+
+\subsection{Command Line Parameters}\label{app:cmd}
+Our proposed tool accepts the following command line parameters:
+
+\begin{itemize}
+    \item -c, \texttt{-{}-}csv\_stats\\
+    Print statistics to CSV file in current working directory.
+
+    \item -f, \texttt{-{}-}field\_size=SIZE\\
+    Set underlaying Galois Field size. (0: GF2, 1: GF4, 2: GF16, 3: GF256).
+
+    \item -g, \texttt{-{}-}gen\_size=SIZE\\
+    Set the generation size.
+
+    \item -i, \texttt{-{}-}nr\_iterations=ITER\\
+    Set the amount of test iterations
+
+    \item -l, \texttt{-{}-}loss\_rate=LOSS\\
+    Set probability with which a coded packet is lost during transmission.
+
+    \item -p, \texttt{-{}-}pkt\_size=SIZE (TODO frame size??)\\
+    Set the packet size.
+
+    \item -s, \texttt{-{}-}seed=ADDR\\
+    Set the seed which is used to generate random test input.
+    \item -v, \texttt{-{}-}verbose
+
+    Produce verbose output.
+\end{itemize}
+
+\section{Evaluation}\label{eval}
+TODO: Hier grafiken und statistische Auswertungen.
+
+\section{Validation of our Tool}\label{eval}
+TODO: Jonas meinte ja dass wir irgendwie zumindest im Ansatz unser Tool auch validieren sollen. 
+
+\section{Conclusion}\label{eval}
+TODO: Hier könnten ggf. gefundene Bugs erwähnt werden.
+
+
+\end{document}

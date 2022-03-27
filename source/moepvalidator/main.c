@@ -34,7 +34,7 @@ static struct argp_option options[] = {
      .key = 'l',
      .arg = "LOSS",
      .flags = 0,
-     .doc = "Set propability with which a coded packet is lost during "
+     .doc = "Set probability with which a coded packet is lost during "
             "transmission"},
     {.name = "pkt_size",
      .key = 'p',
