@@ -91,8 +91,7 @@ This is achieved by calling the main interfaces \texttt{rlnc\_block\_add()},
 random order to find even very hard to find errors in one by running the tool through 
 many iterations.\\
 //TODO: Außerdem konnte die lib per statistischer auswertung validert werden\\
-//TODO: Außerdem konnten die folgenden bugs gefunden werden-> Decode wirft 
-keinen Fehler, wenn unlogischer Buffer übergeben wird (wollen wir das erwähnen)
+//TODO: und es konnten die folgenden bugs gefunden werden...
 
 \end{abstract}
 
@@ -174,13 +173,29 @@ Our proposed tool accepts the following command line parameters:
 \end{itemize}
 
 \section{Evaluation}\label{eval}
+According to the lecture, the probability that N randomly chosen coding vectors form
+the complete N-dimensional vector space is given by equation \ref{eq:decode_prob}.
+\begin{equation} 
+  Pr[dim\bigcup_{i=1}^{N}\{c_i\} = N] = \prod_{i=1}^{N} (1 - \frac{q^{i - 1}}{q ^ {N}})
+  \label{eq:decode_prob}
+\end{equation}
+
+Where N is the generation size and q the size of the underlying Galois Field ($q \in \{2,4,16,256\}$).
+
+Applied to the context of our project, equation \ref{eq:decode_prob} gives us the probability that the 
+\texttt{rlnc\_block} \texttt{b} can be completely decoded after exactly N transmissions.
+
+TODO: Darauf eingehen, warum der seed die auswertung beeinflusst und warum wir in die library eingreifen mussten.\\
 TODO: Hier grafiken und statistische Auswertungen.
+
 
 \section{Validation of our Tool}\label{eval}
 TODO: Jonas meinte ja dass wir irgendwie zumindest im Ansatz unser Tool auch validieren sollen. 
 
 \section{Conclusion}\label{eval}
 TODO: Hier könnten ggf. gefundene Bugs erwähnt werden.
+Vorschläge:  Decode wirft keinen Fehler, wenn unlogischer Buffer übergeben wird (wollen wir das erwähnen)\\
+seed im rlnc\_block nicht von außen zugängelich.
 
 
 \end{document}
