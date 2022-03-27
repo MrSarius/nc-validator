@@ -29,6 +29,18 @@ struct generation
     uint8_t *data;
 };
 
+// TODO: use
+struct validation_instance_args
+{
+    size_t packet_size;
+    float loss_rate;
+    size_t generation_size;
+    struct generation *gen_a;
+    struct generation *gen_b;
+    rlnc_block_t rlnc_block_a;
+    rlnc_block_t rlnc_block_b;
+};
+
 void free_gen(struct generation *gen)
 {
     free(gen->data);
@@ -180,86 +192,175 @@ void print_ith_frame_ab(const struct generation *gen_a, const struct generation 
     fprintf(stderr, "Packet b: %s\n", b);
 }
 
-int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype, bool csv)
-{
-    struct generation *gen_a;
-    struct generation *gen_b;
-    float r;
-    rlnc_block_t rlnc_block_a;
-    rlnc_block_t rlnc_block_b;
+size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b){
+    // TODO: add bursts
+    int re_val;
     size_t frames_created;
     size_t frames_consumed;
     size_t frames_delivered;
     size_t frames_dropped;
+    size_t needed_transmissions;
+    size_t failed_decodings;
+    int tmp_rank;
+
+    frames_created = 0;
+    frames_consumed = 0;
+    frames_delivered = 0;
+    frames_dropped = 0;
+    failed_decodings = 0;
+    needed_transmissions = 0;
+
+    // pre fill network buffer at A
+    for (i = 0; i < generation_size; i++)
+    {
+        re_val = create_at_A(gen_a, rlnc_block_a, frames_created++);
+        assert(re_val == 0, "rlnc_block_add should have returned 0 but return %i instead\n", re_val);
+    }
+    while (gen_a->n_packets != gen_b->n_packets)
+    {
+
+        tmp_rank = rlnc_block_rank_decode(rlnc_block_b);
+
+        re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, frames_created);
+        if (re_val == 0)
+        {
+            frames_delivered++;
+            if (tmp_rank < (int)generation_size)
+                needed_transmissions++;
+        }else if (re_val == -2)
+        {
+            frames_dropped++;
+        }
+        
+
+        re_val = consume_at_B(rlnc_block_b, gen_b, packet_size, frames_consumed);
+
+        if (re_val != 0)
+        {
+            // the next packet could not be decoded
+            failed_decodings++;
+        }
+        else
+        {
+            // check if generations match
+            if (memcmp(gen_a->data + frames_consumed * packet_size, gen_b->data + frames_consumed * packet_size, packet_size) != 0)
+            {
+                fprintf(stderr, "Generations do not match!\n");
+                print_ith_frame_ab(gen_a, gen_b, packet_size, i);
+                print_pkt_diff(gen_a, gen_b, frames_consumed, packet_size);
+                free_everything(gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+                return -1;
+            }
+            // the next packet could be decoded and is in gen_b
+            frames_consumed++;
+        }
+    }
+    update_statistics(i, frames_delivered, frames_dropped);
+    return needed_transmissions;
+}
+
+size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b){
     int re_val;
+    float r;
+    size_t frames_created;
+    size_t frames_consumed;
+    size_t frames_delivered;
+    size_t frames_dropped;
+    size_t needed_transmissions;
+    int tmp_rank;
+    size_t failed_decodings;
+
+    failed_decodings = 0;
+    frames_created = 0;
+    frames_consumed = 0;
+    frames_delivered = 0;
+    frames_dropped = 0;
+
+    needed_transmissions = 0;
+
+    while (gen_a->n_packets != gen_b->n_packets)
+    {
+        r = randf();
+        if (r < 1. / 3 && frames_created < generation_size)
+        {
+            re_val = create_at_A(gen_a, rlnc_block_a, frames_created++);
+        }
+        else if (r > 1. / 3 && r < 2. / 3)
+        {
+            tmp_rank = rlnc_block_rank_decode(rlnc_block_b);
+            re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, frames_created);
+            if (re_val == 0)
+            {
+                frames_delivered++;
+                if (tmp_rank < (int)generation_size)
+                    needed_transmissions++;
+            }else if (re_val == -2)
+            {
+                frames_dropped++;
+            }
+        }
+        else
+        {
+            re_val = consume_at_B(rlnc_block_b, gen_b, packet_size, frames_consumed);
+
+            if (re_val != 0)
+            {
+                // the next packet could not be decoded
+                failed_decodings++;
+            }
+            else
+            {
+                // check if generations match
+                if (memcmp(gen_a->data + frames_consumed * packet_size, gen_b->data + frames_consumed * packet_size, packet_size) != 0)
+                {
+                    fprintf(stderr, "Generations do not match!\n");
+                    print_ith_frame_ab(gen_a, gen_b, packet_size, frames_consumed);
+                    print_pkt_diff(gen_a, gen_b, frames_consumed, packet_size);
+                    free_everything(gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+                    return -1;
+                }
+                // the next packet could be decoded and is in gen_b
+                frames_consumed++;
+            }
+        }
+        // TODO: log rank of the matrix
+    }
+    update_statistics(i, frames_delivered, frames_dropped);
+    return needed_transmissions;
+}
+
+int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype, bool csv)
+{
+    struct generation *gen_a;
+    struct generation *gen_b;
+    // float r;
+    rlnc_block_t rlnc_block_a;
+    rlnc_block_t rlnc_block_b;
+    // size_t frames_created;
+    // size_t frames_consumed;
+    // size_t frames_delivered;
+    // size_t frames_dropped;
+    // int re_val;
     size_t i;
     size_t all_linear_independent = 0;
-    size_t needed_transmission;
-    int tmp_rank;
+    size_t needed_transmissions;
+    // int tmp_rank;
 
     set_seed(seed);
     for (i = 0; i < iterations; i++)
     {
         logger("Starting iteration #%ld\n", i);
-        frames_created = 0;
-        frames_consumed = 0;
-        frames_delivered = 0;
-        frames_dropped = 0;
-        needed_transmission = 0;
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
         rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
         rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
-        while (gen_a->n_packets != gen_b->n_packets)
-        {
-            r = randf();
-            if (r < 1. / 3 && frames_created < generation_size)
-            {
-                re_val = create_at_A(gen_a, rlnc_block_a, frames_created++);
-            }
-            else if (r > 1. / 3 && r < 2. / 3)
-            {
-                tmp_rank = rlnc_block_rank_decode(rlnc_block_b);
-                re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, frames_created);
-                if (re_val == 0)
-                {
-                    frames_delivered++;
-                    if (tmp_rank < (int)generation_size)
-                        needed_transmission++;
-                }else if (re_val == -2)
-                {
-                    frames_dropped++;
-                }
-            }
-            else
-            {
-                re_val = consume_at_B(rlnc_block_b, gen_b, packet_size, frames_consumed);
 
-                if (re_val != 0)
-                {
-                    // the next packet could not be decoded
-                }
-                else
-                {
-                    // check if generations match
-                    if (memcmp(gen_a->data + frames_consumed * packet_size, gen_b->data + frames_consumed * packet_size, packet_size) != 0)
-                    {
-                        fprintf(stderr, "Generations do not match!\n");
-                        print_ith_frame_ab(gen_a, gen_b, packet_size, i);
-                        print_pkt_diff(gen_a, gen_b, frames_consumed, packet_size);
-                        free_everything(gen_a, gen_b, rlnc_block_a, rlnc_block_b);
-                        return -1;
-                    }
-                    // the next packet could be decoded and is in gen_b
-                    frames_consumed++;
-                }
-            }
-            // TODO: log rank of the matrix
-        }
-        if (needed_transmission == generation_size)
-        {
+        // TODO: let passed args decide which function we take
+        needed_transmissions = pre_fill(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+
+        if (needed_transmissions == generation_size)
             all_linear_independent++;
-        }
+        
 
         if (!cmp_gen(gen_a, gen_b))
         {
@@ -276,8 +377,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         rlnc_block_free(rlnc_block_a);
         rlnc_block_free(rlnc_block_b);
         logger("Iteration #%ld successfull.\n\n", i);
-        update_statistics(i, frames_delivered, frames_dropped);
     }
+    logger("linear independet: %lu / %lu\n", all_linear_independent, iterations);
     logger("Chance of linear undependency: %.2f%%\n", (100.0 * all_linear_independent) / iterations);
     logger("Should be: %.2lf\n", 100.0 * prop_linear_independent(generation_size, gftype));
     return 0;
