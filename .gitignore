@@ -2,4 +2,5 @@
 */**/build
 */**/*.o
 */**/moep80211ncm*
+*/**/ptmlink
 */**/libmoep*
