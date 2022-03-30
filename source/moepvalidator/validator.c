@@ -199,16 +199,11 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
     size_t frames_consumed;
     size_t frames_delivered;
     size_t frames_dropped;
-    size_t needed_transmissions;
-    size_t failed_decodings;
-    int tmp_rank;
 
     frames_created = 0;
     frames_consumed = 0;
     frames_delivered = 0;
     frames_dropped = 0;
-    failed_decodings = 0;
-    needed_transmissions = 0;
 
     // pre fill network buffer at A
     for (i = 0; i < generation_size; i++)
@@ -216,47 +211,40 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
         re_val = create_at_A(gen_a, rlnc_block_a, frames_created++);
         assert(re_val == 0, "rlnc_block_add should have returned 0 but return %i instead\n", re_val);
     }
-    while (gen_a->n_packets != gen_b->n_packets)
+
+    // send until B has full rank
+    while (rlnc_block_rank_decode(rlnc_block_b) != generation_size)
     {
-
-        tmp_rank = rlnc_block_rank_decode(rlnc_block_b);
-
         re_val = transmit_A2B(loss_rate, rlnc_block_a, rlnc_block_b, frames_created);
         if (re_val == 0)
         {
             frames_delivered++;
-            if (tmp_rank < (int)generation_size)
-                needed_transmissions++;
         }else if (re_val == -2)
         {
             frames_dropped++;
         }
+    }
+
+    for (i = 0; i < generation_size; i++)
+    {
         
-
         re_val = consume_at_B(rlnc_block_b, gen_b, packet_size, frames_consumed);
+        assert(re_val == 0, "consume_at_B returned %i instead of 0 which means decoding was not possible. However, in this postion it should be possbile as the matrix already as full rank\n", re_val);
 
-        if (re_val != 0)
+        // check if generations match
+        if (memcmp(gen_a->data + frames_consumed * packet_size, gen_b->data + frames_consumed * packet_size, packet_size) != 0)
         {
-            // the next packet could not be decoded
-            failed_decodings++;
+            fprintf(stderr, "Generations do not match!\n");
+            print_ith_frame_ab(gen_a, gen_b, packet_size, i);
+            print_pkt_diff(gen_a, gen_b, frames_consumed, packet_size);
+            free_everything(gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+            return -1;
         }
-        else
-        {
-            // check if generations match
-            if (memcmp(gen_a->data + frames_consumed * packet_size, gen_b->data + frames_consumed * packet_size, packet_size) != 0)
-            {
-                fprintf(stderr, "Generations do not match!\n");
-                print_ith_frame_ab(gen_a, gen_b, packet_size, i);
-                print_pkt_diff(gen_a, gen_b, frames_consumed, packet_size);
-                free_everything(gen_a, gen_b, rlnc_block_a, rlnc_block_b);
-                return -1;
-            }
-            // the next packet could be decoded and is in gen_b
-            frames_consumed++;
-        }
+        // the next packet could be decoded and is in gen_b
+        frames_consumed++;
     }
     update_statistics(i, frames_delivered, frames_dropped);
-    return needed_transmissions;
+    return frames_delivered;
 }
 
 size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b){
