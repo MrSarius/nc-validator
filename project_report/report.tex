@@ -141,6 +141,37 @@ Since our tool also has an abstraction of a generation, in the following the ter
 TODO: Dependencies + build-steps... Also wsl. einfach README reinkopieren. 
 
 \subsection{TODO: OUR TOOL EXPLAINED}\label{app:expl}
+Our tool implements a flow which generally devides into the so called 'random mode' and the 'statics mode'.
+The reason, why the existance of those two modes ist mandatory and their funtionality will be explained in this chapter.
+
+The random mode:
+The random mode is mainly intended to find programatical bugs in the underlaying rlnc library. Therefore it it implements a
+loop which executes a user-specified amount of iterations. Each iteration two generations (A and B) are initiated. Generation A
+is filled with random bytes as example data. From this point on, the program iterates as long as it was not abled to decode the last 
+frame on the Generation B. Each loop we execute one of three possible methods, each with a probability of $\frac{1}{3}$.
+
+The first option is a function that extracts the next frame from our generation and adds it to the underlying \texttt{rlnc\_block A}
+which is represented by our Generation A. Important to note here, is that this will only be executed until we added all remaining frames
+from Generation A to \texttt{rlnc\_block A}. After that, the loop will just continue.
+
+The second possibility is that the program tries to simulate a transmission of a coded frame between generation
+A and B. Therefore, coded data is generated from the \texttt{rlnc\_block A} (if the block is not empty). After that the method might just return with
+probability of the loss which was defined by the user. This way the program simulates the loss of that coded data in transmission. If the coded data is not
+lost, it will be added to the \texttt{rlnc\_block B} which already includes removing any linear dependencies which might now exist in the \texttt{rlnc\_block B}.
+
+The thirst option is that the program decides to consume on the \texttt{rlnc\_block B}. This includes trying to read the next decoded frame from 
+\texttt{rlnc\_block B} and writing it, if available, into the Generation B.
+
+With the proposed flow, it is possible to randomly generate numerous scenarios, when leaving the loop running for long enough. 
+Especially edge-case scenarios like the following ones are tested:
+
+\begin{itemize}
+  \item \texttt{rlnc\_block B} is empty, because no transmissions where made until the point of execution and we try to read decoded frames from it.
+  \item \texttt{rlnc\_block A} is empty and the program tries to generate coded data from it and transmit it to the counter part
+  \item \texttt{rlnc\_block A} is only partly filled and the program already transmitted parts of the available information. TODO Gleichzeitig, 
+  the program tries to decode information on the B side.
+\end{itemize}
+
 TODO: Den Programmfluss etwas beschreiben. Wann passiert was und was davon passiert "random".
 
 \subsection{Command Line Parameters}\label{app:cmd}
