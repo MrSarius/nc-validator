@@ -318,7 +318,7 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
     return needed_transmissions;
 }
 
-int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype, bool csv)
+int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype, bool csv, bool prefill)
 {
     struct generation *gen_a;
     struct generation *gen_b;
@@ -345,8 +345,11 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         //rlnc_block_set_seed(rlnc_block_a, i);
         //rlnc_block_set_seed(rlnc_block_b, i);
 
-        // TODO: let passed args decide which function we take
-        needed_transmissions = pre_fill(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+        if (prefill){
+            needed_transmissions = pre_fill(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+        }else{
+            needed_transmissions = random_order(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+        }
 
         if (needed_transmissions == generation_size)
             all_linear_independent++;

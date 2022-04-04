@@ -8,6 +8,7 @@ struct arguments
     size_t generation_size;
     size_t nr_iterations;
     float loss_rate;
+    bool prefill;
     size_t packet_size;
     unsigned int seed;
     bool verbose;

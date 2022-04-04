@@ -36,6 +36,11 @@ static struct argp_option options[] = {
      .flags = 0,
      .doc = "Set probability with which a coded packet is lost during "
             "transmission"},
+    {.name = "mode",
+     .key = 'm',
+     .arg = 0,
+     .flags = 0,
+     .doc = "Executes the testing program in a deterministic 'pre fill' mode."},
     {.name = "pkt_size",
      .key = 'p',
      .arg = "SIZE",
@@ -104,6 +109,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 
         break;
 
+    case 'm':
+        args->prefill = true;
+        break;
+
     case 'p':
         args->packet_size = strtol(arg, &endptr, 0);
         if (!endptr && endptr != arg + strlen(arg))
@@ -134,6 +143,7 @@ int main(int argc, char **argv)
     args.generation_size = 100;
     args.nr_iterations = 10;
     args.loss_rate = 0.0;
+    args.prefill = false;
     args.packet_size = 1500;
     args.seed = 42;
     args.verbose = false;
@@ -151,7 +161,7 @@ int main(int argc, char **argv)
         args.loss_rate, args.packet_size, args.seed,
         args.verbose);
 
-    bool valid = validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype, args.csv) == 0;
+    bool valid = validate(args.nr_iterations, args.packet_size, args.generation_size, args.loss_rate, args.seed, args.gftype, args.csv, args.prefill) == 0;
     close_stats();
     if (valid)
     {
