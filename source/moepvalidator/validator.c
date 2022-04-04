@@ -199,6 +199,7 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
     size_t frames_consumed;
     size_t frames_delivered;
     size_t frames_dropped;
+    size_t j;
 
     frames_created = 0;
     frames_consumed = 0;
@@ -206,7 +207,7 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
     frames_dropped = 0;
 
     // pre fill network buffer at A
-    for (i = 0; i < generation_size; i++)
+    for (j = 0; j < generation_size; j++)
     {
         re_val = create_at_A(gen_a, rlnc_block_a, frames_created++);
         assert(re_val == 0, "rlnc_block_add should have returned 0 but return %i instead\n", re_val);
@@ -225,7 +226,7 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
         }
     }
 
-    for (i = 0; i < generation_size; i++)
+    for (j = 0; j < generation_size; j++)
     {
         
         re_val = consume_at_B(rlnc_block_b, gen_b, packet_size, frames_consumed);
