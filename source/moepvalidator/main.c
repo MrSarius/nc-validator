@@ -11,9 +11,9 @@
 static struct argp_option options[] = {
     {.name = "csv_stats",
      .key = 'c',
-     .arg = 0,
+     .arg = "NAME",
      .flags = 0,
-     .doc = "Print statistics to CSV file in current working directory"},
+     .doc = "Saves statistics with given name to a CVS file in the current working directory"},
     {.name = "field_size",
      .key = 'f',
      .arg = "SIZE",
@@ -70,7 +70,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     switch (key)
     {
     case 'c':
-        args->csv = true;
+        args->csv = arg;
+        if (!strcmp(args->csv, "")){
+            argp_failure(state, 1, errno, "File name cannot be empty.");
+        }
         break;
 
     case 'f':
@@ -134,7 +137,7 @@ int main(int argc, char **argv)
     args.packet_size = 1500;
     args.seed = 42;
     args.verbose = false;
-    args.csv = false;
+    args.csv = NULL;
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
     setVerbose(args.verbose);

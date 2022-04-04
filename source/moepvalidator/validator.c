@@ -243,7 +243,7 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
         // the next packet could be decoded and is in gen_b
         frames_consumed++;
     }
-    update_statistics(i, frames_delivered, frames_dropped);
+    update_statistics(frames_delivered, frames_dropped);
     return frames_delivered;
 }
 
@@ -313,7 +313,7 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
         }
         // TODO: log rank of the matrix
     }
-    update_statistics(i, frames_delivered, frames_dropped);
+    update_statistics(frames_delivered, frames_dropped);
     return needed_transmissions;
 }
 
@@ -342,6 +342,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         gen_b = empty_generation(packet_size, generation_size);
         rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
         rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
+        //rlnc_block_set_seed(rlnc_block_a, i);
+        //rlnc_block_set_seed(rlnc_block_b, i);
 
         // TODO: let passed args decide which function we take
         needed_transmissions = pre_fill(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);

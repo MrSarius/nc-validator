@@ -3,10 +3,10 @@
 
 #include "main.h"
 
-void init_stats(struct arguments a);
+void init_stats(struct arguments);
 
 void close_stats();
 
-void update_statistics(size_t, size_t, size_t);
+void update_statistics(size_t, size_t);
 
 #endif

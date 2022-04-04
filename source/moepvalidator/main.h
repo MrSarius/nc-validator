@@ -11,7 +11,7 @@ struct arguments
     size_t packet_size;
     unsigned int seed;
     bool verbose;
-    bool csv;
+    char* csv;
 };
 
 #endif
