@@ -8,7 +8,6 @@ FILE *fptr;
 struct arguments myargs;
 
 void init_stats(struct arguments a){
-    printf("test %s test \n", a.csv);
     if (a.csv == NULL){
         return;
     }
