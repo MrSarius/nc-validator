@@ -30,16 +30,16 @@ struct generation
 };
 
 // TODO: use
-struct validation_instance_args
-{
-    size_t packet_size;
-    float loss_rate;
-    size_t generation_size;
-    struct generation *gen_a;
-    struct generation *gen_b;
-    rlnc_block_t rlnc_block_a;
-    rlnc_block_t rlnc_block_b;
-};
+// struct validation_instance_args
+// {
+//     size_t packet_size;
+//     float loss_rate;
+//     size_t generation_size;
+//     struct generation *gen_a;
+//     struct generation *gen_b;
+//     rlnc_block_t rlnc_block_a;
+//     rlnc_block_t rlnc_block_b;
+// };
 
 void free_gen(struct generation *gen)
 {
@@ -322,18 +322,11 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
 {
     struct generation *gen_a;
     struct generation *gen_b;
-    // float r;
     rlnc_block_t rlnc_block_a;
     rlnc_block_t rlnc_block_b;
-    // size_t frames_created;
-    // size_t frames_consumed;
-    // size_t frames_delivered;
-    // size_t frames_dropped;
-    // int re_val;
     size_t i;
     size_t all_linear_independent = 0;
     size_t needed_transmissions;
-    // int tmp_rank;
 
     set_seed(seed);
     for (i = 0; i < iterations; i++)
