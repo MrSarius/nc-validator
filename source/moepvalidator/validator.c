@@ -327,6 +327,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t i;
     size_t all_linear_independent = 0;
     size_t needed_transmissions;
+    float r = 0.0;
+
 
     set_seed(seed);
     for (i = 0; i < iterations; i++)
@@ -334,8 +336,12 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         logger("Starting iteration #%ld\n", i);
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
-        rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
-        rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
+        if (r < 0.5){
+            // block has been reset for r>=0.5
+            // we only need to init the block in the beginning and not when it has been reset
+            rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
+            rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
+        }
         //rlnc_block_set_seed(rlnc_block_a, i);
         //rlnc_block_set_seed(rlnc_block_b, i);
 
@@ -355,11 +361,16 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
 
         free_gen(gen_a);
         free_gen(gen_b);
-        // TODO: maybe we can randomly reuse the buffer by resetting it instead of freeing and allocating again and again
-        // rlnc_block_reset(rlnc_block_a);
-        // rlnc_block_reset(rlnc_block_b);
-        rlnc_block_free(rlnc_block_a);
-        rlnc_block_free(rlnc_block_b);
+        // randomly reuse the buffer by resetting it instead of freeing and allocating again and again
+        r = randf();
+        if (i == iterations-1 || r < 0.5){
+            rlnc_block_free(rlnc_block_a);
+            rlnc_block_free(rlnc_block_b);
+        }else{
+            rlnc_block_reset(rlnc_block_a);
+            rlnc_block_reset(rlnc_block_b);
+        }
+
         logger("Iteration #%ld successfull.\n\n", i);
     }
     logger("linear independet: %lu / %lu\n", all_linear_independent, iterations);
