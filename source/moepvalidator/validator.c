@@ -336,7 +336,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         logger("Starting iteration #%ld\n", i);
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
-        if (r < 0.5){
+        if (i == 0 || r < 0.5){
             // block has been reset for r>=0.5
             // we only need to init the block in the beginning and not when it has been reset
             rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
