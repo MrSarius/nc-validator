@@ -192,7 +192,8 @@ void print_ith_frame_ab(const struct generation *gen_a, const struct generation 
     fprintf(stderr, "Packet b: %s\n", b);
 }
 
-size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b){
+size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b)
+{
     // TODO: add bursts
     int re_val;
     size_t frames_created;
@@ -220,7 +221,8 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
         if (re_val == 0)
         {
             frames_delivered++;
-        }else if (re_val == -2)
+        }
+        else if (re_val == -2)
         {
             frames_dropped++;
         }
@@ -228,7 +230,7 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
 
     for (j = 0; j < generation_size; j++)
     {
-        
+
         re_val = consume_at_B(rlnc_block_b, gen_b, packet_size, frames_consumed);
         assert(re_val == 0, "consume_at_B returned %i instead of 0 which means decoding was not possible. However, in this postion it should be possbile as the matrix already as full rank\n", re_val);
 
@@ -248,7 +250,8 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
     return frames_delivered;
 }
 
-size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b){
+size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b)
+{
     int re_val;
     float r;
     size_t frames_created;
@@ -283,7 +286,8 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
                 frames_delivered++;
                 if (tmp_rank < (int)generation_size)
                     needed_transmissions++;
-            }else if (re_val == -2)
+            }
+            else if (re_val == -2)
             {
                 frames_dropped++;
             }
@@ -329,31 +333,33 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     size_t needed_transmissions;
     float r = 0.0;
 
-
     set_seed(seed);
     for (i = 0; i < iterations; i++)
     {
         logger("Starting iteration #%ld\n", i);
         gen_a = create_generation(packet_size, generation_size);
         gen_b = empty_generation(packet_size, generation_size);
-        if (i == 0 || r < 0.5){
+        if (i == 0 || r < 0.5)
+        {
             // block has been reset for r>=0.5
             // we only need to init the block in the beginning and not when it has been reset
             rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
             rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
         }
-        //rlnc_block_set_seed(rlnc_block_a, i);
-        //rlnc_block_set_seed(rlnc_block_b, i);
+        // rlnc_block_set_seed(rlnc_block_a, i);
+        // rlnc_block_set_seed(rlnc_block_b, i);
 
-        if (prefill){
+        if (prefill)
+        {
             needed_transmissions = pre_fill(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
-        }else{
+        }
+        else
+        {
             needed_transmissions = random_order(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
         }
 
         if (needed_transmissions == generation_size)
             all_linear_independent++;
-        
 
         if (!cmp_gen(gen_a, gen_b))
         {
@@ -366,10 +372,13 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
         free_gen(gen_b);
         // randomly reuse the buffer by resetting it instead of freeing and allocating again and again
         r = randf();
-        if (i == iterations-1 || r < 0.5){
+        if (i == iterations - 1 || r < 0.5)
+        {
             rlnc_block_free(rlnc_block_a);
             rlnc_block_free(rlnc_block_b);
-        }else{
+        }
+        else
+        {
             rlnc_block_reset(rlnc_block_a);
             rlnc_block_reset(rlnc_block_b);
         }

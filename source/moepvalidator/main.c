@@ -76,7 +76,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     {
     case 'c':
         args->csv = arg;
-        if (!strcmp(args->csv, "")){
+        if (!strcmp(args->csv, ""))
+        {
             argp_failure(state, 1, errno, "File name cannot be empty.");
         }
         break;
