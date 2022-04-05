@@ -254,6 +254,28 @@ Our proposed tool accepts the following command line parameters:
 \end{itemize}
 
 \section{Evaluation}\label{sec:eval}
+\subsection{Important Change to the \texttt{rlnc Library}}
+We had to extend the \texttt{rlnc library} by the function below, as the 
+library does not offer the possibility to change the seed of a \texttt{rlnc\_block} from outside. The seed is 
+initialized with zero when a \texttt{rlnc\_block} is created. This seed is then used by the rlnc\_block\_decode() 
+method to pseudo randomly combine data with each other. However, if the same seed is used, the 
+data of Generation A will always be coded in the same sequence. 
+While this behavior does not need to cause problems in reality, it does make an statistical evaluation obsolete.
+
+\lstset{language=C}
+\begin{lstlisting}
+  void rlnc_block_set_seed(rlnc_block_t b, unsigned seed){
+    b->r_seed = seed;
+    return;
+  }
+\end{lstlisting}
+
+We use this function to give each \texttt{rlnc\_blocks} a unique seed before each iteration.
+
+Note that there is a version of the code in the repository where the calls to this method 
+have been commented out to ensure that the code works and compiles.
+
+\subsection{Verification of the Decoding Probability}
 According to the lecture, the probability that N randomly chosen coding vectors form
 the complete N-dimensional vector space is given by equation \ref{eq:decode_prob}.
 \begin{equation} 
@@ -289,6 +311,8 @@ the respective coding vector, the case described above should never occur.
 
 Consequently, we suggest that the method should throw an error in this case. In all other methods, 
 the library already shows such behavior and throws an error if an illogical buffer size is passed.
+
+TODO: Man könnte nich erwähnen dass es sinnlos ist einen Seed im rlnc block zu haben, wenn der immer auf 0 steht
 
 TODO: Irgendwo erwähnen, dass wir den random mode sehr viel haben laufen lassen und keinen Fehler feststellen konnten
 
