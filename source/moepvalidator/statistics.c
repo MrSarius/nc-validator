@@ -21,6 +21,7 @@ void init_stats(struct arguments a)
         printf("Error opening statistics file\n");
         exit(1);
     }
+    // todo: before this print a json of the configuration
     fprintf(fptr, "gf,gen_size,frame_size,frames_sent,frames_delivered,frames_dropped,loss_rate,linear_dependent,percentage_linear_dependent\n");
 }
 

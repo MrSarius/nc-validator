@@ -296,10 +296,74 @@ Applied to the context of our project, equation \ref{eq:decode_prob} gives us th
 TODO: Hier grafiken und statistische Auswertungen.
 
 
-\section{Validation of our Tool}\label{eval}
+\begin{figure}[htb]
+  \centering
+  \subfloat[GF 2]{\includegraphics[scale=0.55]{figs/gf2}\label{fig:gf2}}
+  \hfill
+  \subfloat[GF 4]{\includegraphics[scale=0.55]{figs/gf4}\label{fig:gf4}}
+  \hfill
+  \subfloat[GF 16]{\includegraphics[scale=0.55]{figs/gf16}\label{fig:gf16}}
+  \hfill
+  \subfloat[GF 256]{\includegraphics[scale=0.55]{figs/gf256}\label{fig:gf256}}
+  \caption{}
+  \label{fig:gfs}
+\end{figure}
+
+% packet size 50, 5000 iterations, generation size varies, prefill mode
+% code to execute (where I is the variable for the generation size and GF the varialbe for the galois field):
+% main -g I -i 5000 -c GF_I -p 50 -f GF -m
+
+% All these statistics are made for gen_size>=20
+% gf2
+% mean, std:
+% 0.2904 0.008058163562499837
+% theoratical lower bound:
+% 0.288788095086602
+% derivation:
+% 0.0016119049133979657
+
+% gf4
+% mean, std:
+% 0.6886725 0.006247819119500815
+% theoratical lower bound:
+% 0.6885375371203397
+% derivation:
+% 0.0001349628796603053
+
+% gf 16
+% mean, std:
+% 0.9340625000000001 0.0032681177686858186
+% theoratical lower bound:
+% 0.933594707399603
+% derivation:
+% 0.0004677926003970878
+
+% gf256
+% mean, std:
+% 0.9960924999999999 0.000836028558124662
+% theoratical lower bound:
+% 0.9960784912118471
+% derivation:
+% 1.4008788152830576e-05
+
+
+% main -g 100 -i 5000 -c ... -p 50 -f 0 -m
+
+\begin{figure}[htb]
+  \centering
+  \subfloat[GF 2 with prefill]{\includegraphics[scale=0.55]{figs/gf2_prefill_hist}\label{fig:gf2_prefill}}
+  \hfill
+  \subfloat[GF 2 without prefill]{\includegraphics[scale=0.55]{figs/gf2_nonprefill_hist}\label{fig:gf2_nonprefill}}
+  \caption{}
+  \label{fig:hists}
+\end{figure}
+
+
+
+\section{Validation of our Tool}\label{val}
 TODO: Jonas meinte ja dass wir irgendwie zumindest im Ansatz unser Tool auch validieren sollen. 
 
-\section{Conclusion}\label{eval}
+\section{Conclusion}\label{con}
 In this project, a tool for validating the \texttt{libmoeprlnc} was implemented, presented and successfully used 
 to validate the library. 
 

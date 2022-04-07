@@ -268,6 +268,7 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
     frames_delivered = 0;
     frames_dropped = 0;
 
+    // TODO: remove this needed_transmission and add a summary at the end of the run
     needed_transmissions = 0;
 
     while (gen_a->n_packets != gen_b->n_packets)
@@ -346,8 +347,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
             rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
         }
-        // rlnc_block_set_seed(rlnc_block_a, i);
-        // rlnc_block_set_seed(rlnc_block_b, i);
+        rlnc_block_set_seed(rlnc_block_a, i);
+        rlnc_block_set_seed(rlnc_block_b, i);
 
         if (prefill)
         {
