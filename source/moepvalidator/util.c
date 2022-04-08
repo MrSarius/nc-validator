@@ -19,6 +19,11 @@ bool verbose = false;
 
 void setVerbose(bool v) { verbose = v; }
 
+/**
+ * Logs passed string if verbose is set to true
+ *
+ * @param format format string
+ */
 void logger(const char *format, ...)
 {
     if (verbose)
@@ -30,6 +35,13 @@ void logger(const char *format, ...)
     }
 }
 
+
+/**
+ * Returns the propability that a generation can be decoded after sending exactly 'generation_size' packets
+ *
+ * @param generation_size Size of the respective generation
+ * @param gftype gftype of respective generation (0,1,2,3)
+ */
 double prop_linear_independent(size_t generation_size, int gftype)
 {
     int q;
@@ -62,6 +74,13 @@ double prop_linear_independent(size_t generation_size, int gftype)
     return out;
 }
 
+
+/**
+ * Small helper that prints message if condition does not hold.
+ *
+ * @param exp condition
+ * @param format format string to be printed
+ */
 void assert(bool exp, const char *format, ...)
 {
     if (!exp)
@@ -77,11 +96,19 @@ void assert(bool exp, const char *format, ...)
     }
 }
 
+/**
+ * Sets the seed for the random generator
+ *
+ * @param seed seed
+ */
 void set_seed(unsigned int seed)
 {
     srandom(seed);
 }
 
+/**
+ * Returns a random float between 0 and 1
+ */
 float randf()
 {
     long int r;
@@ -90,6 +117,13 @@ float randf()
     return (float)r / (RAND_MAX);
 }
 
+
+/**
+ * Returns a random integer between from and to
+ * 
+ * @param from
+ * @param to
+ */
 int randint(int from, int to)
 {
     long int r;
@@ -99,11 +133,22 @@ int randint(int from, int to)
     diff = to - from;
     return (int)(diff * r / (RAND_MAX) + from);
 }
+
+/**
+ * Return a random byte
+ */
 uint8_t randbyte()
 {
     return (uint8_t)randint(0, 255);
 }
 
+
+/**
+ * Fills a with n random bytes
+ * 
+ * @param n
+ * @param *a
+ */
 void randbytes(size_t n, uint8_t *a)
 {
     size_t i;
@@ -113,6 +158,12 @@ void randbytes(size_t n, uint8_t *a)
     }
 }
 
+/**
+ * Returns the next largest multiple of allignment to length. Intended to allocate alligned memory for the rlnc  functions
+ * 
+ * @param len length to be alligned
+ * @param alignment chosen allignment
+ */
 size_t aligned_length(size_t len, size_t alignment)
 {
     return (((len + alignment - 1) / alignment) * alignment);

@@ -7,6 +7,11 @@
 FILE *fptr;
 struct arguments myargs;
 
+/**
+ * Call once to initialize the statistics module
+ *
+ * @param a program arguments
+ */
 void init_stats(struct arguments a)
 {
     if (a.csv == NULL)
@@ -33,6 +38,12 @@ void close_stats()
     }
 }
 
+/**
+ * Adds new line to the statistics csv with data from current iteration
+ *
+ * @param frames_delivered Frames delivered to destination in current iteration
+ * @param frames_dropped Frames dropped in current iteration
+ */
 void update_statistics(size_t frames_delivered, size_t frames_dropped)
 {
     if (fptr)

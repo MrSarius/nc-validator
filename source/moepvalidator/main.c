@@ -8,6 +8,11 @@
 #include "validator.h"
 #include "statistics.h"
 
+/*
+ * Argument parsing
+ * ---------------------------------------------------------------------------
+ */
+
 static struct argp_option options[] = {
     {.name = "csv_stats",
      .key = 'c',
@@ -135,10 +140,15 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
     return 0;
 }
 
+/*
+ * ---------------------------------------------------------------------------
+ * /Argument parsing
+ */
+
 int main(int argc, char **argv)
 {
     memset(&args, 0, sizeof(args));
-    // TODO: realistic default values
+    //set defaults
     args.gftype = 3; // GF256
     args.generation_size = 100;
     args.nr_iterations = 10;
