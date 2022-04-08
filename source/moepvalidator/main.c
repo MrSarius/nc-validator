@@ -18,7 +18,7 @@ static struct argp_option options[] = {
      .key = 'f',
      .arg = "SIZE",
      .flags = 0,
-     .doc = "Set underlaying Galois Field size. (0: GF2, 1: GF4, 2: GF16, 3: "
+     .doc = "Set underlying Galois Field size. (0: GF2, 1: GF4, 2: GF16, 3: "
             "GF256)"},
     {.name = "gen_size",
      .key = 'g',

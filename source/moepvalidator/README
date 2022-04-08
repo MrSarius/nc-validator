@@ -1,0 +1,53 @@
+moepvalidator (validation for rlnc library)
+====================================
+
+The tool simulates two communication partners trying to exchange random data with each other using the rlcn library. If both communication partners do not have the same data at the end or unexpected events occur, the program terminates and displays the error on the console. The tool's random nature is aimed at detecting particularly hard-to-find errors.
+
+The tool can also be used for statistical evaluations of the rlcn library.
+
+For more information and documentation, we recommend reading the project report.
+
+
+Dependencies
+------------
+
+The moepvalidator requires the installation of the moep80211ncm library, which in turn depends on the libmoep injection library installed. 
+For more information read the respective README files of the libraries.
+
+
+Build
+------------
+
+make
+./build/main --usage
+
+
+Program Arguments
+------------
+
+    -c, --csv_stats
+    Print statistics to CSV file in current working directory.
+
+    -f, --field_size=SIZE
+    Set underlying Galois Field size. (0: GF2, 1: GF4, 2: GF16, 3: GF256).
+
+    -g, --gen_size=SIZE
+    Set the generation size.
+
+    -i, --nr_iterations=ITER
+    Set the amount of test iterations
+
+    -l, --loss_rate=LOSS
+    Set probability with which coded data is lost during transmission.
+
+    -m, --mode
+    Executes the program in 'pre fill' mode.
+
+    -p, --pkt_size=SIZE
+    Set the frame size.
+
+     -s, --seed=ADDR
+    Set the seed which is used to generate random test input.
+
+    -v, --verbose
+    Produce verbose output.
