@@ -260,52 +260,79 @@ The proposed tool accepts the following command line parameters:
 
 \section{Evaluation}\label{sec:eval}
 \subsection{Important Change to the \texttt{rlnc Library}}
-We had to extend the \texttt{rlnc library} by the function below, as the 
+We had to extend \texttt{libmoeprlnc} by the function shown in Figure \ref{code}, as the 
 library does not offer the possibility to change the seed of a \texttt{rlnc\_block} from outside. The seed is 
-initialized with zero when a \texttt{rlnc\_block} is created. This seed is then used by the rlnc\_block\_decode() 
-method to pseudo randomly (\texttt{rand\_r(seed)}) combine data with each other. However, if the same seed is used, the 
-data of Generation A will always be coded in the same sequence. 
+initialized with zero when a \texttt{rlnc\_block} is created. This seed is then used by the \texttt{rlnc\_block\_decode()}
+method to pseudo-randomly (\texttt{rand\_r(seed)}) combine data with each other. However, if the same seed is used, the 
+data of generation A will always be coded in the same sequence. 
 While this behavior does not need to cause problems in a real-world application, it does make an statistical evaluation obsolete.
 
-\lstset{language=C}
-\begin{lstlisting}
-  void rlnc_block_set_seed(rlnc_block_t b, unsigned seed){
-    b->r_seed = seed;
-    return;
-  }
-\end{lstlisting}
+% \lstset{language=C}
+% \begin{lstlisting}
+%   void rlnc_block_set_seed(rlnc_block_t b, unsigned seed){
+%     b->r_seed = seed;
+%     return;
+%   }
+% \end{lstlisting}
 
-We use this function to give each \texttt{rlnc\_blocks} a unique seed before each iteration.
+\begin{figure}[h]
+  \begin{lstlisting}[language=C]
+void rlnc_block_set_seed(rlnc_block_t b, unsigned int seed){
+  b->r_seed = seed;
+}
+\end{lstlisting}
+  \caption[]{Extension of \texttt{libmoeprlnc} in order to allow a user defined non-default seed.}
+  \label{code}
+\end{figure}
+
+We use the function in Figure \ref{code} to give each \texttt{rlnc\_blocks} a unique seed before each iteration.
 
 Note that there is a version of the code in the repository where the calls to this method 
-have been commented out to ensure that the code works and compiles.
+have been commented out to ensure that the code works and compiles with the unpatched version of \texttt{libmoeprlnc}.
 
 \subsection{Verification of the Decoding Probability}
-According to the lecture, the probability that N randomly chosen coding vectors form
-the complete N-dimensional vector space is given by equation \ref{eq:decode_prob}.
+According to the lecture, the probability that $N$ randomly chosen coding vectors form
+the complete $N$-dimensional vector space is given by % equation \eqref{eq:decode_prob}.
 \begin{equation} 
   Pr[dim\bigcup_{i=1}^{N}\{c_i\} = N] = \prod_{i=1}^{N} (1 - \frac{q^{i - 1}}{q ^ {N}})
   \label{eq:decode_prob}
 \end{equation}
+where $N$ is the generation size and $q$ the size of the underlying Galois Field ($q \in \{2,4,16,256\}$).
 
-Where N is the generation size and q the size of the underlying Galois Field ($q \in \{2,4,16,256\}$).
+Applied to the context of our project, equation \eqref{eq:decode_prob} gives us
+the probability that the \texttt{rlnc\_block} \texttt{b} can be completely
+decoded after exactly $N$ transmissions. Figure \ref{fig:gfs} shows four plots
+where each plot shows measured and theoratical decoding probability after $N$
+sent frames for inceasing generation sizes $N$. For the generation of these
+statistics we had to use what we call the \texttt{prefill} mode. This mode does
+not use random order of adding frames, transmission and decoding but first adds
+all frames to the \texttt{rlnc\_block} in A, then transmits all frames to B
+until B has full rank. Finally, B removes all frames and the generation is
+validated. Only this gives us valid statistics as \eqref{eq:decode_prob} is
+invalid when the generation is not already full at the beginning and still
+continues to increase.
 
-Applied to the context of our project, equation \ref{eq:decode_prob} gives us the probability that the 
-\texttt{rlnc\_block} \texttt{b} can be completely decoded after exactly N transmissions.
-
-TODO: Hier grafiken und statistische Auswertungen.
+% TODO: write here something about our command line tool, how to use it etc.
 
 
 \begin{figure}[htb]
   \centering
-  \subfloat[GF 2]{\includegraphics[scale=0.55]{figs/gf2}\label{fig:gf2}}
+  \subfloat[$q=2$]{\includegraphics[scale=0.55]{figs/gf2}\label{fig:gf2}}
   \hfill
-  \subfloat[GF 4]{\includegraphics[scale=0.55]{figs/gf4}\label{fig:gf4}}
+  \subfloat[$q=4$]{\includegraphics[scale=0.55]{figs/gf4}\label{fig:gf4}}
   \hfill
-  \subfloat[GF 16]{\includegraphics[scale=0.55]{figs/gf16}\label{fig:gf16}}
+  \subfloat[$q=16$]{\includegraphics[scale=0.55]{figs/gf16}\label{fig:gf16}}
   \hfill
-  \subfloat[GF 256]{\includegraphics[scale=0.55]{figs/gf256}\label{fig:gf256}}
-  \caption{}
+  \subfloat[$q=256$]{\includegraphics[scale=0.55]{figs/gf256}\label{fig:gf256}}
+  \caption{Measured probability of decodeability after successful transmission
+  of $N$ (generation size) random linear coded frames and theoretical
+  probability for generations sizes $N\in[200]$. Each plot uses a fixed Galois
+  Field sizes $q$. In other words, the plot shows the measured and theoretical
+  probability that for generation size $N$ it was sufficient to sent $N$ frames,
+  or whether more have been needed as the matrix at B did not have full rank.
+  For all plots a frame size of 50 Bytes with 5000 iterations has been used in
+  prefill mode. The y-axis has the same scale in all plots to make them easier to
+  compare.
   \label{fig:gfs}
 \end{figure}
 
