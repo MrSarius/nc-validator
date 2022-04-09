@@ -368,8 +368,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
             rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
         }
-        rlnc_block_set_seed(rlnc_block_a, i);
-        rlnc_block_set_seed(rlnc_block_b, i);
+        //rlnc_block_set_seed(rlnc_block_a, i);
+        //rlnc_block_set_seed(rlnc_block_b, i);
 
         if (prefill)
         {
