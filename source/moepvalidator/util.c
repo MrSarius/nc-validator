@@ -69,7 +69,7 @@ double prop_linear_independent(size_t generation_size, int gftype)
     }
     for (i = 1; i <= generation_size; i++)
     {
-        out *= (1 - pow(q, i - 1) / pow(q, generation_size));
+        out *= (1 - pow(q, (int)i - 1 - (int)generation_size));
     }
     return out;
 }

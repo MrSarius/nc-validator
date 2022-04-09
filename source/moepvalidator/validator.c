@@ -307,8 +307,11 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
         // the next packet could be decoded and is in gen_b
         frames_consumed++;
     }
-    update_statistics(frames_delivered, frames_dropped);
-    return frames_delivered;
+    // update_statistics(frames_delivered, frames_dropped);
+    // return frames_delivered;
+    update_statistics(frames_delivered, frames_dropped, 0);
+    size_t linear_dependent = frames_delivered - generation_size;
+    return linear_dependent == 0;
 }
 
 size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b)
@@ -319,7 +322,7 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
     size_t frames_consumed;
     size_t frames_delivered;
     size_t frames_dropped;
-    size_t needed_transmissions;
+    size_t frames_delivered_after_full_rank;
     int tmp_rank;
     size_t failed_decodings;
 
@@ -330,7 +333,7 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
     frames_dropped = 0;
 
     // TODO: remove this needed_transmission and add a summary at the end of the run
-    needed_transmissions = 0;
+    frames_delivered_after_full_rank = 0;
 
     while (gen_a->n_packets != gen_b->n_packets)
     {
@@ -346,8 +349,8 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
             if (re_val == 0)
             {
                 frames_delivered++;
-                if (tmp_rank < (int)generation_size)
-                    needed_transmissions++;
+                if (tmp_rank == (int)generation_size)
+                    frames_delivered_after_full_rank++;
             }
             else if (re_val == -2)
             {
@@ -380,8 +383,9 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
         }
         // TODO: log rank of the matrix
     }
-    update_statistics(frames_delivered, frames_dropped);
-    return needed_transmissions;
+    update_statistics(frames_delivered, frames_dropped, frames_delivered_after_full_rank);
+    size_t linear_dependent = frames_delivered - frames_delivered_after_full_rank - generation_size;
+    return linear_dependent == 0;
 }
 
 /**
@@ -404,7 +408,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     rlnc_block_t rlnc_block_b;
     size_t i;
     size_t all_linear_independent = 0;
-    size_t needed_transmissions;
+    // size_t needed_transmissions;
+    bool linear_dependency;
     float r = 0.0;
 
     set_seed(seed);
@@ -425,14 +430,14 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
 
         if (prefill)
         {
-            needed_transmissions = pre_fill(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+            linear_dependency = pre_fill(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
         }
         else
         {
-            needed_transmissions = random_order(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
+            linear_dependency = random_order(i, packet_size, loss_rate, generation_size, gen_a, gen_b, rlnc_block_a, rlnc_block_b);
         }
 
-        if (needed_transmissions == generation_size)
+        if (linear_dependency)
             all_linear_independent++;
 
         if (!cmp_gen(gen_a, gen_b))
@@ -459,8 +464,16 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
 
         logger("Iteration #%ld successfull.\n\n", i);
     }
-    logger("linear independet: %lu / %lu\n", all_linear_independent, iterations);
-    logger("Chance of linear undependency: %.2f%%\n", (100.0 * all_linear_independent) / iterations);
-    logger("Should be: %.2lf\n", 100.0 * prop_linear_independent(generation_size, gftype));
+    // log all linear independent, mean std
+    // average amount of frames needed
+    // logger("linear independet: %lu / %lu\n", all_linear_independent, iterations);
+    // logger("Chance of linear undependency: %.2f%%\n", (100.0 * all_linear_independent) / iterations);
+    // logger("Should be: %.2lf\n", 100.0 * prop_linear_independent(generation_size, gftype));
+    logger("\n#### RESULTS: ####\ngf_type: %d, generation_size: %ld, packet_size: %ld, iterations: %ld\nExpected decoding prob.: %.4f\nMeasured decoding prob.: %ld/%ld = %.4f\n", gftype,
+            generation_size, packet_size, iterations,
+           prop_linear_independent(generation_size, gftype), all_linear_independent, iterations, all_linear_independent * 1.0 / iterations);
+    if(!prefill)
+        logger("Hint: As you are running in random order mode you can ignore the expected decoding probability. For more details see the readme file.\n");
+        //The generation at A slowly fills and thus there are many linear depent packets in the beginning in this mode.")
     return 0;
 }

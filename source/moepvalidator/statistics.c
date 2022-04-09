@@ -6,6 +6,7 @@
 
 FILE *fptr;
 struct arguments myargs;
+// TODO: save frames_delivered and frames_delivered_after_full rank in array in order to calculate mean and std of it
 
 /**
  * Call once to initialize the statistics module
@@ -26,8 +27,8 @@ void init_stats(struct arguments a)
         printf("Error opening statistics file\n");
         exit(1);
     }
-    // todo: before this print a json of the configuration
-    fprintf(fptr, "gf,gen_size,frame_size,frames_sent,frames_delivered,frames_dropped,loss_rate,linear_dependent,percentage_linear_dependent\n");
+    // TODO: ask if file should be overwritten and exit if not
+    fprintf(fptr, "gf,gen_size,frame_size,frames_sent,frames_delivered,frames_dropped,loss_rate,linear_dependent,percentage_linear_dependent,frames_delivered_after_full_rank,prefill\n");
 }
 
 void close_stats()
@@ -44,13 +45,13 @@ void close_stats()
  * @param frames_delivered Frames delivered to destination in current iteration
  * @param frames_dropped Frames dropped in current iteration
  */
-void update_statistics(size_t frames_delivered, size_t frames_dropped)
+void update_statistics(size_t frames_delivered, size_t frames_dropped, size_t frames_delivered_after_full_rank)
 {
     if (fptr)
     {
         size_t frames_sent = frames_delivered + frames_dropped;
-        size_t linear_dependent = frames_delivered - myargs.generation_size;
+        size_t linear_dependent = frames_delivered - frames_delivered_after_full_rank - myargs.generation_size;
         float percentage_linear_dependent = (linear_dependent * 1.0 / frames_delivered) * 100;
-        fprintf(fptr, "%d,%ld,%ld,%ld,%ld,%ld,%f,%ld,%f\n", myargs.gftype, myargs.generation_size, myargs.packet_size, frames_sent, frames_delivered, frames_dropped, myargs.loss_rate, linear_dependent, percentage_linear_dependent);
+        fprintf(fptr, "%d,%ld,%ld,%ld,%ld,%ld,%f,%ld,%f,%ld,%i\n", myargs.gftype, myargs.generation_size, myargs.packet_size, frames_sent, frames_delivered, frames_dropped, myargs.loss_rate, linear_dependent, percentage_linear_dependent, frames_delivered_after_full_rank, myargs.prefill);
     }
 }

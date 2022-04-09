@@ -175,12 +175,12 @@ int main(int argc, char **argv)
     close_stats();
     if (valid)
     {
-        printf("Validation program run through without errors!\n");
+        logger("\nSuccessful validation!\n");
         return 0;
     }
     else
     {
-        printf("Validation program had some errors, see the log above for more information!\n");
+        fprintf(stderr, "Validation program had some errors, see the log above for more information!\n");
         return -1;
     }
 }
