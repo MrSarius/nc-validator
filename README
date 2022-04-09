@@ -3,14 +3,12 @@ moepvalidator (validation for rlnc library)
 
 TODO
 ====
-- rename source -> src, needs to be adapted in vs code build and python files
 - documentation of c and python function
 - test python code, add args
 - rename moepvalidator in libmoeprlnc_validator
 - rename compile unit
 - statistics for no seed
 - statistics with loss prob
-- add copyright tags
 - readme how to compile, explain modes, explain python file and jupyter
 
 ====
