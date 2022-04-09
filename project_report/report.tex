@@ -121,8 +121,7 @@ Since our tool also has an abstraction of a generation, in the following the ter
 
 \begin{itemize}
     \item \underline{\texttt{rlnc\_block\_add(rlnc\_block\_t b, int pv, const uint8\_t *data, size\_t len)}}\\
-    Reads the data of size \texttt{len} from \texttt{*data} and adds it to the \texttt{rlnc\_block} \texttt{b}. Pivot (\texttt{pv}) describes the index of the data in the generation. 
-    (TODO @Tobi ist das richtig mit dem pivot?). 
+    Reads the data of size \texttt{len} from \texttt{*data} and adds it to the \texttt{rlnc\_block} \texttt{b}. Pivot (\texttt{pv}) describes the index of the data in the generation.
 
     \item \underline{\texttt{rlnc\_block\_encode(const rlnc\_block\_t b, uint8\_t *dst, size\_t maxlen, int flags)}}\\
     Randomly encodes data from the \texttt{rlnc\_block} \texttt{b} and returns the coded data at \texttt{*dst}. 
@@ -406,10 +405,4 @@ the respective coding vector, the case described above should never occur.
 
 Consequently, we suggest that rlnc\_block\_decode() should throw an error in this case. In all other methods, 
 the library already shows such behavior and returns an error if an illogical buffer size is passed.
-
-TODO: Man könnte nich erwähnen dass es sinnlos ist einen Seed im rlnc block zu haben, wenn der immer auf 0 steht
-
-TODO: Irgendwo erwähnen, dass wir den random mode sehr viel haben laufen lassen und keinen Fehler feststellen konnten
-
-
 \end{document}
