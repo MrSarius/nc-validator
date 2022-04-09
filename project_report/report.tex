@@ -139,7 +139,12 @@ Since our tool also has an abstraction of a generation, in the following the ter
   \end{itemize}
 
 \subsection{Building the Tool}\label{app:build}
-TODO: Dependencies + build-steps... Also wsl. einfach README reinkopieren. 
+This tool requires the installation of the moep80211ncm library, which in turn depends on the libmoep injection library. 
+
+\begin{itemize}
+  \item make
+  \item ./build/main --help
+\end{itemize}
 
 \subsection{The Tool and Its Program Flow}\label{sec:tool}
 Generally, our tool simulates the communication between two partners A and B. 
@@ -183,7 +188,7 @@ For better clarity of the flow of data, all three functions are shown in Figure 
 
 During the whole process, our tool mainly distinguishes between two modes that strongly influence the program flow. 
 The random mode and the prefill mode mode. 
-The idea behind the random mode is basically a random execution of the interfaces provided by the library under test, 
+The idea behind the random mode is basically a random execution of the presented functions, 
 to especially detect bugs that occur only in very rare edge cases.
 In general, the prefill mode is more deterministic and is better suited for 
 statistical analysis for various reasons, which will be explained in more detail below.
@@ -217,7 +222,6 @@ might distort the number of required transmissions.
 
 Furthermore, in random mode the tool will try to send already coded data while the \texttt{rlnc\_block} on the A side has not been completely filled yet. 
 This results in the probability of sending linearly dependent data being very high at the beginning and decreasing over time. 
-decreases over time.
 
 To work around these problems, we have introduced the prefill mode.
 

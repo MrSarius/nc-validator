@@ -11,7 +11,7 @@ For more information and documentation, we recommend reading the project report.
 Dependencies
 ------------
 
-The moepvalidator requires the installation of the moep80211ncm library, which in turn depends on the libmoep injection library installed. 
+This tool requires the installation of the moep80211ncm library, which in turn depends on the libmoep injection library. 
 For more information read the respective README files of the libraries.
 
 
