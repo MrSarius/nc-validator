@@ -32,18 +32,6 @@ struct generation
     uint8_t *data;
 };
 
-// TODO: use
-// struct validation_instance_args
-// {
-//     size_t packet_size;
-//     float loss_rate;
-//     size_t generation_size;
-//     struct generation *gen_a;
-//     struct generation *gen_b;
-//     rlnc_block_t rlnc_block_a;
-//     rlnc_block_t rlnc_block_b;
-// };
-
 /**
  * Free generation
  *
@@ -221,6 +209,14 @@ int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t pac
     return 0;
 }
 
+/**
+ * Prints the indexes and byte data of the positions which do not match in the ith frame of the two given generations.
+ * 
+ * @param gen_a generation A
+ * @param gen_b generation B to which A should be compared
+ * @param ith position of the frame in the generation. Only this frame is beeing compared
+ * @param packet_size 
+ */
 void print_pkt_diff(const struct generation *gen_a, const struct generation *gen_b, size_t ith, size_t packet_size)
 {
     uint8_t *data_a;
@@ -236,13 +232,19 @@ void print_pkt_diff(const struct generation *gen_a, const struct generation *gen
     }
 }
 
+/**
+ * Prints ith frame (the whole frame) from generation a and b, both in a separate line such that one can compare them easily.
+ * 
+ * @param gen_a 
+ * @param gen_b 
+ * @param packet_size 
+ * @param i ith frame to print.
+ */
 void print_ith_frame_ab(const struct generation *gen_a, const struct generation *gen_b, size_t packet_size, size_t i)
 {
-    char *a;
-    char *b;
+    char a[packet_size + 1];
+    char b[packet_size + 1];
 
-    a = malloc(sizeof(char) * packet_size + 1);
-    b = malloc(sizeof(char) * packet_size + 1);
     memcpy(a, gen_a->data + i * packet_size, packet_size);
     memcpy(b, gen_b->data + i * packet_size, packet_size);
     a[packet_size] = '\0';
@@ -251,6 +253,24 @@ void print_ith_frame_ab(const struct generation *gen_a, const struct generation 
     fprintf(stderr, "Packet b: %s\n", b);
 }
 
+/**
+ * One of two modes that define the order how frames are generated, transmitted and decoded. This mode uses the following predefined order of these events:
+ * First, all frames are added to A, then randomly coded frames are transmitted to B until B has full rank. Finally, B decodes/observes the frames and compares
+ * them to the originally added ones. This mode is mainly used for statistical purposes as we can exactly calculate the decoding probability after N linear coded
+ * frames and compare it to the measured probability in order to detect any problems with the pseudorandomness with libmoeprlnc. Note that the comparison only
+ * works when the seed of the rlnc_block is set. See the readme for further details.
+ * 
+ * 
+ * @param i 
+ * @param packet_size 
+ * @param loss_rate 
+ * @param generation_size 
+ * @param gen_a 
+ * @param gen_b 
+ * @param rlnc_block_a 
+ * @param rlnc_block_b 
+ * @return size_t 
+ */
 size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b)
 {
     int re_val;
@@ -303,12 +323,32 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
         }
         // the next packet could be decoded and is in gen_b
         frames_consumed++;
+        // print_ith_frame_ab(gen_a, gen_b, packet_size, i);
     }
     update_statistics(frames_delivered, frames_dropped, 0);
     size_t linear_dependent = frames_delivered - generation_size;
     return linear_dependent == 0;
 }
 
+/**
+ * One of two modes that define the order how frames are generated, transmitted and decoded. This mode uses a pseudo random (defined by the seed) order of of these
+ * events. Thus, it can happen we try to send decoded frames even though we haven't add any to the rlnc_block in A. This will result in a warning from libmoeprlnc.
+ * However, this warning can be ignored as it is handled correctly by this function. Furthermore, it can also happen that more frames are transmitted than actually
+ * needed by B, e.g. when A transmitts even though B has already full rank. These frames are denoted as frames_delivered_after_full_rank in the statistics csv.
+ * Another problem that comes with random order is that in the beginning when not all frames have been added to A, the frames send to B are coded only from
+ * a subset of all frames (namely the ones that A already knows of). Thus, this invalidates the statistics of decidability after N frames, which makes
+ * this mode more or less useless for statistical analysis.
+ * 
+ * @param i 
+ * @param packet_size 
+ * @param loss_rate 
+ * @param generation_size 
+ * @param gen_a 
+ * @param gen_b 
+ * @param rlnc_block_a 
+ * @param rlnc_block_b 
+ * @return size_t 
+ */
 size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b)
 {
     int re_val;
@@ -463,7 +503,7 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
            generation_size, packet_size, iterations,
            prop_linear_independent(generation_size, gftype), all_linear_independent, iterations, all_linear_independent * 1.0 / iterations);
     if (!prefill)
-        logger("Hint: As you are running in random order mode you can ignore the expected decoding probability. For more details see the readme file.\n");
+        logger("Note: As you are running in random order mode you can ignore the expected decoding probability. For more details see the readme file.\n");
     // The generation at A slowly fills and thus there are many linear depent packets in the beginning in this mode.")
     return 0;
 }

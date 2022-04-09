@@ -1,6 +1,20 @@
 moepvalidator (validation for rlnc library)
 ====================================
 
+TODO
+====
+- rename source -> src, needs to be adapted in vs code build and python files
+- documentation of c and python function
+- test python code, add args
+- rename moepvalidator in libmoeprlnc_validator
+- rename compile unit
+- statistics for no seed
+- statistics with loss prob
+- add copyright tags
+- readme how to compile, explain modes, explain python file and jupyter
+
+====
+
 The tool simulates two communication partners trying to exchange random data with each other using the rlcn library. If both communication partners do not have the same data at the end or unexpected events occur, the program terminates and displays the error on the console. The tool's random nature is aimed at detecting particularly hard-to-find errors.
 
 The tool can also be used for statistical evaluations of the rlcn library.
