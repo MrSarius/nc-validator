@@ -93,6 +93,13 @@ struct generation *create_generation(size_t packet_size, size_t generation_size)
     return gen_new;
 }
 
+/**
+ * Take the ith data from the generation and add it to the rlnc_block
+ * 
+ * @param gen_a generation
+ * @param rlnc_block_a rlnc_block
+ * @param ith index of frame in generation
+ */
 int create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a, size_t ith)
 {
     size_t ps;
@@ -137,6 +144,7 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
     free(dst);
     return 0;
 }
+
 int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets)
 {
     size_t sz;
@@ -177,6 +185,7 @@ void print_pkt_diff(const struct generation *gen_a, const struct generation *gen
             fprintf(stderr, "%zu: %i != %i\n", i, data_a[i], data_b[i]);
     }
 }
+
 void print_ith_frame_ab(const struct generation *gen_a, const struct generation *gen_b, size_t packet_size, size_t i)
 {
     char *a;
@@ -323,6 +332,18 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
     return needed_transmissions;
 }
 
+/**
+ * Validates the rlnc library according to the parameters.
+ * 
+ * @param iterations Amount of iteration to be executed
+ * @param packet_size data length of the generation
+ * @param generation_size size of the generations
+ * @param loss_rate rate with which information might be lost in transmission
+ * @param seed seed for the random generator
+ * @param gftype underlying Galois Field.
+ * @param csv True if intermediate statistics should be printed to a CSV file in the current working directory after each iteration
+ * @param prefill True if validation should be done in so called prefill mode
+ */
 int validate(size_t iterations, size_t packet_size, size_t generation_size, float loss_rate, unsigned int seed, int gftype, bool csv, bool prefill)
 {
     struct generation *gen_a;

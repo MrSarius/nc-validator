@@ -147,7 +147,7 @@ uint8_t randbyte()
  * Fills a with n random bytes
  * 
  * @param n
- * @param *a
+ * @param a
  */
 void randbytes(size_t n, uint8_t *a)
 {
