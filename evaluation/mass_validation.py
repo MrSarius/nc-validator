@@ -1,14 +1,34 @@
+"""
+Copyright 2021,2022		Tobias Juelg <tobias.juelg@tum.de>
+			            Ben Riegel <ben.riegel@tum.de>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+See COPYING for more details.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 from multiprocessing import Pool
+from typing import Dict, Optional, List
 
-def validate_f(args):
+def validate_f(args: Dict):
     validate(**args)
 
 
-def validate(gen_size, iterations=5000, packet_size=50, file_name=None, prefill=True, galois_field=256):
+def validate(gen_size: int, iterations: int = 5000, packet_size: int = 50, file_name: Optional[str] = None, prefill: bool = True, galois_field: int = 256):
     # This function only works when the compiled validator lies in src/moepvalidator/build/main
     ex_cmd = "../src/moepvalidator/build/main -g {} -i {}{}-p {} -f {}{}"
     gf2id = {2: 0, 4: 1, 16: 2, 256: 3}
@@ -21,7 +41,7 @@ def validate(gen_size, iterations=5000, packet_size=50, file_name=None, prefill=
         assert False
 
 # args: folder, field as array, iterations, packet size, bool prefill, generation size
-def validate_parallel(folder=None, file_name="valdation_stats_{gf}_{gs}_{ps}_{prefill}.csv", gf=None, gs=None, ps=None, prefill=True, n_processes=None, iterations=5000):
+def validate_parallel(folder: Optional[str] = None, file_name: str = "valdation_stats_{gf}_{gs}_{ps}_{prefill}.csv", gf: Optional[List[int]] = None, gs: Optional[List[int]] = None, ps: Optional[List[int]] = None, prefill: bool = True, n_processes: Optional[int] = None, iterations: int = 5000):
     # default parameters
     if gs is None:
         gs = range(1, 100)
