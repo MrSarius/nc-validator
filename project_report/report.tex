@@ -328,7 +328,7 @@ continues to increase.
   \hfill
   \subfloat[$q=256$]{\includegraphics[scale=0.55]{figs/gf256}\label{fig:gf256}}
   of $N$ (generation size) random linear coded frames and theoretical
-  probability for generations sizes $N\in[200]$. Each plot uses a fixed Galois
+  probability for generations sizes $N\in\{1, ..., 99\}$. Each plot uses a fixed Galois
   Field sizes $q$. In other words, the plot shows the measured and theoretical
   probability that for generation size $N$ it was sufficient to sent $N$ frames,
   or whether more have been needed as the matrix at B did not have full rank.
@@ -338,6 +338,30 @@ continues to increase.
   \label{fig:gfs}
   \caption{Measured probability of decodeability after successful transmission}
 \end{figure}
+
+Table \ref{tab:mean-std} shows measured mean, standard deviation and theoretical lower bound decoding probabilities for all sub figures of Figure \ref{fig:gfs}. All of the following statistics are calculated for the generation sizes N=$\{20, ..., 100\}$ as the theoretical decoding probability is already converged for all Galois Fields and does only change very little for $N>20$. 
+%Figure \ref{fig:fig2} shows the decoding probabilities for $q=2$. Its mean decoding probability over all $N\ge20$ is 29.09\% with a standard deviation
+
+
+\begin{table}[htb]
+  \caption{Mean, standard deviation and theoretical lower bound for the plots of Figure \ref{fig:gfs} over $N\ge20$}
+  \label{tab:mean-std}
+  \centering
+  \begin{tabular}{l|l|r|l}
+    \toprule
+       $q$ & Mean & Standard Deviation & Lower Bound \\
+    %\hhline{=|=|=|=}
+    \midrule
+    2 & 29.04\% & 0.81\% & 28.88\%\\
+    4 & 68.87\% & 0.62\% & 68.85\%\\
+    16 & 93.41\% & 0.33\% & 93.36\%\\
+    256 & 99.61\% & 0.08\% & 99.61\%\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+% pretty much for all Galois Fields and does not change 
 
 % packet size 50, 5000 iterations, generation size varies, prefill mode
 % code to execute (where I is the variable for the generation size and GF the varialbe for the galois field):
