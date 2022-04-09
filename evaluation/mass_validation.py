@@ -9,8 +9,8 @@ def validate_f(args):
 
 
 def validate(gen_size, iterations=5000, packet_size=50, file_name=None, prefill=True, galois_field=256):
-    # This function only works when the compiled validator lies in source/moepvalidator/build/main
-    ex_cmd = "../source/moepvalidator/build/main -g {} -i {}{}-p {} -f {}{}"
+    # This function only works when the compiled validator lies in src/moepvalidator/build/main
+    ex_cmd = "../src/moepvalidator/build/main -g {} -i {}{}-p {} -f {}{}"
     gf2id = {2: 0, 4: 1, 16: 2, 256: 3}
     if galois_field not in gf2id:
         raise RuntimeError("Only the fields q in {2, 4, 16, 256} are supported!")

@@ -6,7 +6,7 @@
             "command": "make",
             "args": ["debug"],
             "options": {
-                "cwd": "${workspaceFolder}/source/moepvalidator"
+                "cwd": "${workspaceFolder}/src/moepvalidator"
             },
             "problemMatcher": [
                 "$gcc"
