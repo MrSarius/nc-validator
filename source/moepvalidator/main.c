@@ -148,7 +148,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 int main(int argc, char **argv)
 {
     memset(&args, 0, sizeof(args));
-    //set defaults
+    // set defaults
     args.gftype = 3; // GF256
     args.generation_size = 100;
     args.nr_iterations = 10;

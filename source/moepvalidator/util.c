@@ -35,7 +35,6 @@ void logger(const char *format, ...)
     }
 }
 
-
 /**
  * Returns the propability that a generation can be decoded after sending exactly 'generation_size' packets
  *
@@ -73,7 +72,6 @@ double prop_linear_independent(size_t generation_size, int gftype)
     }
     return out;
 }
-
 
 /**
  * Small helper that prints message if condition does not hold.
@@ -117,10 +115,9 @@ float randf()
     return (float)r / (RAND_MAX);
 }
 
-
 /**
  * Returns a random integer between from and to
- * 
+ *
  * @param from
  * @param to
  */
@@ -142,10 +139,9 @@ uint8_t randbyte()
     return (uint8_t)randint(0, 255);
 }
 
-
 /**
  * Fills a with n random bytes
- * 
+ *
  * @param n
  * @param a
  */
@@ -160,7 +156,7 @@ void randbytes(size_t n, uint8_t *a)
 
 /**
  * Returns the next largest multiple of allignment to length. Intended to allocate alligned memory for the rlnc  functions
- * 
+ *
  * @param len length to be alligned
  * @param alignment chosen allignment
  */

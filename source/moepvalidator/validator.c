@@ -44,10 +44,9 @@ struct generation
 //     rlnc_block_t rlnc_block_b;
 // };
 
-
 /**
  * Free generation
- * 
+ *
  * @param gen generation to be freed
  */
 void free_gen(struct generation *gen)
@@ -58,7 +57,7 @@ void free_gen(struct generation *gen)
 
 /**
  * Frees both generations and rlnc blocks
- * 
+ *
  * @param gen_a
  * @param gen_b
  * @param rlnc_block_a
@@ -72,10 +71,9 @@ void free_everything(struct generation *gen_a, struct generation *gen_b, rlnc_bl
     rlnc_block_free(rlnc_block_b);
 }
 
-
 /**
  * Returns true if both generations are equal
- * 
+ *
  * @param gen_a
  * @param gen_b
  */
@@ -91,7 +89,7 @@ bool cmp_gen(const struct generation *gen_a, const struct generation *gen_b)
 
 /**
  * Create new empty generation containing random bytes
- * 
+ *
  * @param packet_size packet size of new generation
  * @param generation_size generation size of new generation
  */
@@ -113,7 +111,7 @@ struct generation *empty_generation(size_t packet_size, size_t generation_size)
 
 /**
  * Create new generation containing random bytes
- * 
+ *
  * @param packet_size packet size of new generation
  * @param generation_size generation size of new generation
  */
@@ -131,7 +129,7 @@ struct generation *create_generation(size_t packet_size, size_t generation_size)
 
 /**
  * Take the ith data from the generation and add it to the rlnc_block
- * 
+ *
  * @param gen_a generation
  * @param rlnc_block_a rlnc_block
  * @param ith index of frame in generation
@@ -146,10 +144,10 @@ int create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a, size_t ith)
 
 /**
  * Transmits frame from rlnc_block_a to rlnc_block_b.
- * 
+ *
  * @param loss_rate loss rate with which a frame might be lost in transmission
  * @param rlnc_block_a
- * @param rlnc_block_b 
+ * @param rlnc_block_b
  * @param frames_created frames created in current iteration
  */
 int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b, size_t frames_created)
@@ -191,10 +189,10 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
 
 /**
  * Consume frame from rlnc_block_b and add it to gen_b, if available
- * 
+ *
  * @param rlnc_block_b loss rate with which a frame might be lost in transmission
  * @param gen_b
- * @param packet_size 
+ * @param packet_size
  * @param consumed_packets packets consumed so far in the current iteration
  */
 int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets)
@@ -255,7 +253,6 @@ void print_ith_frame_ab(const struct generation *gen_a, const struct generation 
 
 size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation_size, struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b)
 {
-    // TODO: add bursts
     int re_val;
     size_t frames_created;
     size_t frames_consumed;
@@ -307,8 +304,6 @@ size_t pre_fill(size_t i, size_t packet_size, float loss_rate, size_t generation
         // the next packet could be decoded and is in gen_b
         frames_consumed++;
     }
-    // update_statistics(frames_delivered, frames_dropped);
-    // return frames_delivered;
     update_statistics(frames_delivered, frames_dropped, 0);
     size_t linear_dependent = frames_delivered - generation_size;
     return linear_dependent == 0;
@@ -332,7 +327,6 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
     frames_delivered = 0;
     frames_dropped = 0;
 
-    // TODO: remove this needed_transmission and add a summary at the end of the run
     frames_delivered_after_full_rank = 0;
 
     while (gen_a->n_packets != gen_b->n_packets)
@@ -390,7 +384,7 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
 
 /**
  * Validates the rlnc library according to the parameters. Returns 0 if successfull.
- * 
+ *
  * @param iterations Amount of iteration to be executed
  * @param packet_size data length of the generation
  * @param generation_size size of the generations
@@ -408,7 +402,6 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
     rlnc_block_t rlnc_block_b;
     size_t i;
     size_t all_linear_independent = 0;
-    // size_t needed_transmissions;
     bool linear_dependency;
     float r = 0.0;
 
@@ -425,8 +418,8 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
             rlnc_block_a = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
             rlnc_block_b = rlnc_block_init((int)generation_size, packet_size, MEMORY_ALIGNMENT, gftype);
         }
-        //rlnc_block_set_seed(rlnc_block_a, i);
-        //rlnc_block_set_seed(rlnc_block_b, i);
+        // rlnc_block_set_seed(rlnc_block_a, i);
+        // rlnc_block_set_seed(rlnc_block_b, i);
 
         if (prefill)
         {
@@ -464,16 +457,13 @@ int validate(size_t iterations, size_t packet_size, size_t generation_size, floa
 
         logger("Iteration #%ld successfull.\n\n", i);
     }
-    // log all linear independent, mean std
+    // TODO log all linear independent, mean std
     // average amount of frames needed
-    // logger("linear independet: %lu / %lu\n", all_linear_independent, iterations);
-    // logger("Chance of linear undependency: %.2f%%\n", (100.0 * all_linear_independent) / iterations);
-    // logger("Should be: %.2lf\n", 100.0 * prop_linear_independent(generation_size, gftype));
     logger("\n#### RESULTS: ####\ngf_type: %d, generation_size: %ld, packet_size: %ld, iterations: %ld\nExpected decoding prob.: %.4f\nMeasured decoding prob.: %ld/%ld = %.4f\n", gftype,
-            generation_size, packet_size, iterations,
+           generation_size, packet_size, iterations,
            prop_linear_independent(generation_size, gftype), all_linear_independent, iterations, all_linear_independent * 1.0 / iterations);
-    if(!prefill)
+    if (!prefill)
         logger("Hint: As you are running in random order mode you can ignore the expected decoding probability. For more details see the readme file.\n");
-        //The generation at A slowly fills and thus there are many linear depent packets in the beginning in this mode.")
+    // The generation at A slowly fills and thus there are many linear depent packets in the beginning in this mode.")
     return 0;
 }
