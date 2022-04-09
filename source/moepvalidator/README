@@ -19,7 +19,7 @@ Build
 ------------
 
 make
-./build/main --usage
+./build/main --help
 
 
 Program Arguments
