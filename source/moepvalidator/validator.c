@@ -20,6 +20,9 @@
 
 #define MEMORY_ALIGNMENT 32
 
+/**
+ * Abstraction of a generation
+ */
 struct generation
 {
     size_t packet_size;
@@ -41,12 +44,26 @@ struct generation
 //     rlnc_block_t rlnc_block_b;
 // };
 
+
+/**
+ * Free generation
+ * 
+ * @param gen generation to be freed
+ */
 void free_gen(struct generation *gen)
 {
     free(gen->data);
     free(gen);
 }
 
+/**
+ * Frees both generations and rlnc blocks
+ * 
+ * @param gen_a
+ * @param gen_b
+ * @param rlnc_block_a
+ * @param rlnc_block_b
+ */
 void free_everything(struct generation *gen_a, struct generation *gen_b, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b)
 {
     free_gen(gen_a);
@@ -55,6 +72,13 @@ void free_everything(struct generation *gen_a, struct generation *gen_b, rlnc_bl
     rlnc_block_free(rlnc_block_b);
 }
 
+
+/**
+ * Returns true if both generations are equal
+ * 
+ * @param gen_a
+ * @param gen_b
+ */
 bool cmp_gen(const struct generation *gen_a, const struct generation *gen_b)
 {
     if (gen_a->packet_size != gen_b->packet_size || gen_a->n_packets != gen_b->n_packets)
@@ -65,6 +89,12 @@ bool cmp_gen(const struct generation *gen_a, const struct generation *gen_b)
         return false;
 }
 
+/**
+ * Create new empty generation containing random bytes
+ * 
+ * @param packet_size packet size of new generation
+ * @param generation_size generation size of new generation
+ */
 struct generation *empty_generation(size_t packet_size, size_t generation_size)
 {
     size_t len;
@@ -81,6 +111,12 @@ struct generation *empty_generation(size_t packet_size, size_t generation_size)
     return gen_new;
 }
 
+/**
+ * Create new generation containing random bytes
+ * 
+ * @param packet_size packet size of new generation
+ * @param generation_size generation size of new generation
+ */
 struct generation *create_generation(size_t packet_size, size_t generation_size)
 {
     size_t len;
@@ -108,6 +144,14 @@ int create_at_A(struct generation *gen_a, rlnc_block_t rlnc_block_a, size_t ith)
     return rlnc_block_add(rlnc_block_a, (int)ith, (const uint8_t *)(gen_a->data + ith * ps), ps);
 }
 
+/**
+ * Transmits frame from rlnc_block_a to rlnc_block_b.
+ * 
+ * @param loss_rate loss rate with which a frame might be lost in transmission
+ * @param rlnc_block_a
+ * @param rlnc_block_b 
+ * @param frames_created frames created in current iteration
+ */
 int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_block_b, size_t frames_created)
 {
     ssize_t frame_size;
@@ -145,6 +189,14 @@ int transmit_A2B(float loss_rate, rlnc_block_t rlnc_block_a, rlnc_block_t rlnc_b
     return 0;
 }
 
+/**
+ * Consume frame from rlnc_block_b and add it to gen_b, if available
+ * 
+ * @param rlnc_block_b loss rate with which a frame might be lost in transmission
+ * @param gen_b
+ * @param packet_size 
+ * @param consumed_packets packets consumed so far in the current iteration
+ */
 int consume_at_B(rlnc_block_t rlnc_block_b, struct generation *gen_b, size_t packet_size, size_t consumed_packets)
 {
     size_t sz;
@@ -333,7 +385,7 @@ size_t random_order(size_t i, size_t packet_size, float loss_rate, size_t genera
 }
 
 /**
- * Validates the rlnc library according to the parameters.
+ * Validates the rlnc library according to the parameters. Returns 0 if successfull.
  * 
  * @param iterations Amount of iteration to be executed
  * @param packet_size data length of the generation
