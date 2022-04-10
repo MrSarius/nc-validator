@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "statistics.h"
 
@@ -40,19 +41,24 @@ void init_stats(struct arguments a)
 
     myargs = a;
 
-    if ((fptr = fopen(myargs.csv, "a")) == NULL)
+    if (access(myargs.csv, F_OK) == 0)
     {
-        printf("Error opening statistics file\n");
+        // csv file already exists
+        fprintf(stderr, "Statistics CSV file already exists and would thus be overwritten! Please rename the old file or choose another path.\n");
         exit(1);
     }
-    // TODO: ask if file should be overwritten and exit if not
+    if ((fptr = fopen(myargs.csv, "a")) == NULL)
+    {
+        fprintf(stderr, "Error opening statistics file\n");
+        exit(1);
+    }
     fprintf(fptr, "gf,gen_size,frame_size,frames_sent,frames_delivered,frames_dropped,loss_rate,linear_dependent,percentage_linear_dependent,frames_delivered_after_full_rank,prefill\n");
 }
 
 /**
  * Closes the open file descriptor of the statistics csv. Note that it is not needed to close the file descriptor for unintended exits as the exit function
  * automatically closes all open file descriptors.
- * 
+ *
  */
 void close_stats()
 {
