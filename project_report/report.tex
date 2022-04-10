@@ -339,7 +339,12 @@ continues to increase.
   \caption{Measured probability of decodeability after successful transmission}
 \end{figure}
 
-Table \ref{tab:mean-std} shows measured mean, standard deviation and theoretical lower bound decoding probabilities for all sub figures of Figure \ref{fig:gfs}. All of the following statistics are calculated for the generation sizes N=$\{20, ..., 100\}$ as the theoretical decoding probability is already converged for all Galois Fields and does only change very little for $N>20$. 
+Table \ref{tab:mean-std} shows measured mean, standard deviation and theoretical
+lower bound decoding probabilities for all sub figures of Figure \ref{fig:gfs}.
+All of the following statistics are calculated for the generation sizes N=$\{20,
+..., 100\}$ as the theoretical decoding probability is already converged for all
+Galois Fields and does only change very little for $N>20$. 
+
 %Figure \ref{fig:fig2} shows the decoding probabilities for $q=2$. Its mean decoding probability over all $N\ge20$ is 29.09\% with a standard deviation
 
 
@@ -426,11 +431,11 @@ During the entire working phase, no profound bugs could be identified.
 In particular, the expected decoding probability presented in the lecture 
 could also be verified in Section \ref{sec:eval}, which is another indication of the correctness of the library.
 
-During the development only by an error of our side it was noticed that the method rlnc\_block\_decode() does not 
+During the development only by an error of our side it was noticed that the method \texttt{rlnc\_block\_decode()} does not 
 throw an error, although it gets a buffer with coded data, which is smaller than the data length defined 
 at initialization. However, since coded data consists of the linear combination of data of the same length and 
 the respective coding vector, the case described above should never occur.
 
-Consequently, we suggest that rlnc\_block\_decode() should throw an error in this case. In all other methods, 
+Consequently, we suggest that \texttt{rlnc\_block\_decode()} should throw an error in this case. In all other methods, 
 the library already shows such behavior and returns an error if an illogical buffer size is passed.
 \end{document}
