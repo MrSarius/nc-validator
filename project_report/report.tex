@@ -337,7 +337,11 @@ The CSV file has the following columns where each line represents one iteration,
   \item \texttt{prefill}: Bool, whether or not prefill mode was used for the validation.
 \end{itemize}
 
-% briefly mention python code
+% briefly mention python code and jupyter
+In order to run several validation configurations at the same time in parallel, we created a python tool, located in \texttt{evaluation/mass\_validation.py}.
+The tool provides both a command line interface to pass lists of configurations as well as python wrapper function to execute the plain single threaded validator or a multithreaded variant of it in python.
+
+Furthermore, we created a jupyter notebook in order to create the plots shown below. The notebook uses python tool and provides some code to readout the CSV files and to create the plots. So using this notebook one should be able to recreate the plots shown in the following chapters. For more details see the readme file and the inline code documentation.
 
 
 
