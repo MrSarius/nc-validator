@@ -318,9 +318,29 @@ have been commented out to ensure that the code works and compiles with the unpa
 
 
 
-\subsection{Python Tool for Parallel Validation of Different Configurations}
-csv file and python tool for parallel validation
-...
+\subsection{CSV File and Python Tool for Parallel Validation}
+
+As already mentioned in Section \ref{app:cmd}, one can specify a path to which statistical results of the validation are stored in form of a CSV file.
+The CSV file has the following columns where each line represents one iteration, so encoding, transmission and decoding of a full randomly generated generation:
+    % fprintf(fptr, "gf,gen_size,frame_size,frames_sent,frames_delivered,frames_dropped,loss_rate,linear_dependent,percentage_linear_dependent,frames_delivered_after_full_rank,prefill\n");
+\begin{itemize}
+  \item \texttt{gf}: Galois Field size as id from zero to three.
+  \item \texttt{gen\_size}: Used generation size.
+  \item \texttt{frame\_size}: Used frame size.
+  \item \texttt{frames\_sent}: Overall number of frames sent to B.
+  \item \texttt{frames\_delivered}: Frames delivered to B, this might only be unequal to \texttt{frames\_sent} if a loss rate is specified.
+  \item \texttt{frames\_dropped}: Frames dropped if loss rate higher than zero was specified.
+  \item \texttt{loss\_rate}: The given loss rate.
+  \item \texttt{linear\_dependent}: Number of frames that were linear dependent to already received frames at B.
+  \item \texttt{percentage\_linear\_dependent}: Percentage of frames that were linear dependent to already received frames at B.
+  \item \texttt{frames\_delivered\_after\_full\_rank}: Number of frames delivered after B had already full rank. This is only relevant for the random order mode.
+  \item \texttt{prefill}: Bool, whether or not prefill mode was used for the validation.
+\end{itemize}
+
+% briefly mention python code
+
+
+
 
 \subsection{Verification of the Decoding Probability}
 According to the lecture, the probability that $N$ randomly chosen coding vectors form
@@ -337,15 +357,6 @@ decoded after exactly $N$ transmissions. Figure \ref{fig:gfs} shows four plots
 where each plot shows measured and theoretical decoding probability after $N$
 sent frames for increasing generation sizes $N$. For the generation of these
 statistics we used the prefill mode in order to ensure correct statistical values.
-%  This mode does
-% not use random order of adding frames, transmission and decoding but first adds
-% all frames to the \texttt{rlnc\_block} in A, then transmits all frames to B
-% until B has full rank. Finally, B removes all frames and the generation is
-% validated. Only this gives us valid statistics as \eqref{eq:decode_prob} is
-% invalid when the generation is not already full at the beginning and still
-% continues to increase.
-
-% TODO: write here something about our command line tool, how to use it etc.
 
 
 \begin{figure}[htb]
