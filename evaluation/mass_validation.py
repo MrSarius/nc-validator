@@ -17,9 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 from multiprocessing import Pool
 from typing import Dict, Optional, List
@@ -41,11 +38,23 @@ def validate(
     prefill: bool = True,
     galois_field: int = 256
 ):
-    """Python wrapper for the validator C program.
+    """Python wrapper for the validator C program
 
-    The only difference compared to the arguments of the C program is that the galois field is given as its actual q value instead of the enum.
+    The only difference compared to the arguments of the C program is that the Galois field is given as its actual q value instead of the enum.
 
     This function only works when the compiled validator lies in src/moepvalidator/build/main
+
+    Args:
+        gen_size (int): generation size in bytes
+        iterations (int, optional): Number of iterations of the validator. Defaults to 5000.
+        packet_size (int, optional): Packet size in bytes for the validator. Defaults to 50.
+        file_name (Optional[str], optional): Path the the CSV file. None means that the statistically output is not saved. Defaults to None.
+        prefill (bool, optional): Whether or not prefill mode should be used. If no prefill mode should be used than random order mode is used
+            See the reademe for more details of the modes. Defaults to True.
+        galois_field (int, optional): Galois field q, possible values are 2, 4, 16 and 256. Defaults to 256.
+
+    Raises:
+        RuntimeError: If invalid Galois field is given
     """
     ex_cmd = "../src/moepvalidator/build/main -g {} -i {}{}-p {} -f {}{}"
     gf2id = {2: 0, 4: 1, 16: 2, 256: 3}
@@ -61,8 +70,6 @@ def validate(
         print(
             f"{gen_size=}, {iterations=}, {packet_size=}, {file_name=}, {prefill=}, {galois_field=}")
         assert False
-
-# args: folder, field as array, iterations, packet size, bool prefill, generation size
 
 
 def validate_parallel(
@@ -80,10 +87,20 @@ def validate_parallel(
     galois field, generation size and packet size can all be a list of integers or None which will use the default values described below.
     This function will create the cross products of these list and execute all possible combinations.
 
-    file_name: name of the resulting csv files, this can be defined in python format string syntax with the values `gf`, `gs`, `ps` and `prefill` which will be replace 
-    with the respective values of galois field, generation size, packet size and whether prefill mode is used for each run.
-
-    folder: path to the folder where the csv files should be saved. If this is set to None then no csv files will be created.
+    Args:
+        folder (Optional[str], optional): Path to the folder where the csv files should be saved.
+            If this is set to None then no csv files will be created. Defaults to None.
+        file_name (str, optional): Name of the resulting csv files, this can be defined in python
+            format string syntax with the values `gf`, `gs`, `ps` and `prefill` which will be replace 
+            with the respective values of galois field, generation size, packet size and whether prefill
+            mode is used for each run. Defaults to "valdation_stats_{gf}_{gs}_{ps}_{prefill}.csv".
+        gf (Optional[List[int]], optional): Galois field. Defaults to None which is translated to [256].
+        gs (Optional[List[int]], optional): Generation size bytes. Defaults to None which is translated to range(1, 100).
+        ps (Optional[List[int]], optional): Packet size in bytes. Defaults to None which is translated to [50].
+        prefill (bool, optional): Prefill mode if True else random mode. See readme for more details. Defaults to True.
+        n_processes (Optional[int], optional): Number of processes that work through the given configurations in parallel. Zero means same thread, None
+            means number of CPUs of the machine. Defaults to None.
+        iterations (int, optional): Number of iterations for each validation. Defaults to 5000.
     """
     # default parameters
     if gs is None:
@@ -149,6 +166,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # command line args, with python style arrays
     main()
     exit(0)
