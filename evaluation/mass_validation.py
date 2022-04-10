@@ -36,7 +36,8 @@ def validate(
     packet_size: int = 50,
     file_name: Optional[str] = None,
     prefill: bool = True,
-    galois_field: int = 256
+    galois_field: int = 256,
+    loss_rate: float = 0.0
 ):
     """Python wrapper for the validator C program
 
@@ -52,19 +53,20 @@ def validate(
         prefill (bool, optional): Whether or not prefill mode should be used. If no prefill mode should be used than random order mode is used
             See the reademe for more details of the modes. Defaults to True.
         galois_field (int, optional): Galois field q, possible values are 2, 4, 16 and 256. Defaults to 256.
+        loss_rate (float): Probability of packet drop. Should be between 0 and 1.
 
     Raises:
         RuntimeError: If invalid Galois field is given
     """
-    ex_cmd = "../src/moepvalidator/build/main -g {} -i {}{}-p {} -f {}{}"
+    ex_cmd = "../src/moepvalidator/build/main -g {} -i {}{}-p {} -f {}{} -l {}"
     gf2id = {2: 0, 4: 1, 16: 2, 256: 3}
     if galois_field not in gf2id:
         raise RuntimeError(
             "Only the fields q in {2, 4, 16, 256} are supported!")
-    # print(ex_cmd.format(gen_size, iterations,
-    #                " " if not file_name else f" -c {file_name} ", packet_size, gf2id[galois_field], " -m"if prefill else ""))
+    print(ex_cmd.format(gen_size, iterations,
+                   " " if not file_name else f" -c {file_name} ", packet_size, gf2id[galois_field], " -m"if prefill else "", loss_rate))
     re = os.system(ex_cmd.format(gen_size, iterations,
-                   " " if not file_name else f" -c {file_name} ", packet_size, gf2id[galois_field], " -m"if prefill else ""))
+                   " " if not file_name else f" -c {file_name} ", packet_size, gf2id[galois_field], " -m"if prefill else "", loss_rate))
     if re != 0:
         print("Problem in validation with following parameters: ")
         print(
@@ -74,10 +76,11 @@ def validate(
 
 def validate_parallel(
     folder: Optional[str] = None,
-    file_name: str = "valdation_stats_{gf}_{gs}_{ps}_{prefill}.csv",
+    file_name: str = "valdation_stats_{gf}_{gs}_{ps}_{loss_rate}_{prefill}.csv",
     gf: Optional[List[int]] = None,
     gs: Optional[List[int]] = None,
     ps: Optional[List[int]] = None,
+    loss_rate: Optional[List[float]] = None,
     prefill: bool = True,
     n_processes: Optional[int] = None,
     iterations: int = 5000
@@ -85,6 +88,7 @@ def validate_parallel(
     """Executes the python wrapper for the C validator `validate` in a parallel fession in order to speed up mass validations that use several configurations.
 
     galois field, generation size and packet size can all be a list of integers or None which will use the default values described below.
+    loss_rate can be a list of floats or None.
     This function will create the cross products of these list and execute all possible combinations.
 
     Args:
@@ -93,10 +97,11 @@ def validate_parallel(
         file_name (str, optional): Name of the resulting csv files, this can be defined in python
             format string syntax with the values `gf`, `gs`, `ps` and `prefill` which will be replace 
             with the respective values of galois field, generation size, packet size and whether prefill
-            mode is used for each run. Defaults to "valdation_stats_{gf}_{gs}_{ps}_{prefill}.csv".
+            mode is used for each run. Defaults to "valdation_stats_{gf}_{gs}_{ps}_{loss_rate}_{prefill}.csv".
         gf (Optional[List[int]], optional): Galois field. Defaults to None which is translated to [256].
         gs (Optional[List[int]], optional): Generation size bytes. Defaults to None which is translated to range(1, 100).
         ps (Optional[List[int]], optional): Packet size in bytes. Defaults to None which is translated to [50].
+        loss_rate (Optional[List[float]], optional): Probability of packet loss. Defaults to None which is translated to [0.0].
         prefill (bool, optional): Prefill mode if True else random mode. See readme for more details. Defaults to True.
         n_processes (Optional[int], optional): Number of processes that work through the given configurations in parallel. Zero means same thread, None
             means number of CPUs of the machine. Defaults to None.
@@ -110,6 +115,8 @@ def validate_parallel(
         gf = [256]
     if ps is None:
         ps = [50]
+    if loss_rate is None:
+        loss_rate = [0.0]
 
     if folder:
         os.makedirs(folder, exist_ok=True)
@@ -117,11 +124,11 @@ def validate_parallel(
         n_processes = os.cpu_count()
 
     args = []
-    for i, j, k in itertools.product(gs, gf, ps):
+    for i, j, k, l in itertools.product(gs, gf, ps, loss_rate):
         path = os.path.join(folder, file_name.format(
-            gf=j, gs=i, ps=k, prefill=prefill)) if folder else None
+            gf=j, gs=i, ps=k, prefill=prefill, loss_rate=l)) if folder else None
         args.append({"gen_size": i, "galois_field": j, "packet_size": k, "iterations": iterations,
-                     "file_name": path, "prefill": prefill})
+                     "file_name": path, "prefill": prefill, "loss_rate": l})
 
     if n_processes == 0:
         print(f"Starting to validate single threaded")
@@ -140,7 +147,7 @@ def main():
         description='Python tool to run the libmoeprlnc C validation with several settings in parallel.')
     parser.add_argument('-fo', '--folder', type=str, default=None,
                         help='Path to the location where the CSV files should be saved. If not set then no CSV files will be created.')
-    parser.add_argument('-f', '--file_name', type=str, default="valdation_stats_{gf}_{gs}_{ps}_{prefill}.csv",
+    parser.add_argument('-f', '--file_name', type=str, default="valdation_stats_{gf}_{gs}_{ps}_{loss_rate}_{prefill}.csv",
                         help='file name template for the csv files. The filename can include `{gf}`, `{gs}`, `{ps}`, and `{prefill}` tags which will be replaced with the respective values of galois field size, generation size, packet size and whether prefill mode was used.')
     parser.add_argument('-gf', '--galois_field', type=str, default="[256]",
                         help='Actual Galois field sizes (q values) which should be validated. The value needs to be a string with a valid definition of a python int iterable. Everything else is not checked and leads to undefined behavior. You can for example use "[2, 4]".')
@@ -150,6 +157,8 @@ def main():
                         help='Packet sizes to validate. The value needs to be a string with a valid definition of a python int iterable. Everything else is not checked and leads to undefined behavior. You can for example use "[50, 100]" or "range(50, 1000, 50)".')
     parser.add_argument('-pf', '--prefill', type=bool, default=True,
                         help='Whether or not the prefill mode should be used. If not the random order mode will be used. For more details on the modes see the readme page.')
+    parser.add_argument('-l', '--loss_rate', type=str, default="[0.0]",
+                        help='Packet loss probability. The value needs to be a string with a valid definition of a python float iterable. Everything else is not checked and leads to undefined behavior. You can for example use "[0.0, 0.5]".')
     parser.add_argument('-j', '--n_processes', type=int, default=None,
                         help='Number of worker processes that should be used for the parallel validation. If set to zero no extra process will be spawned and the existing python thread will be used to execute the validation sequentially.')
     parser.add_argument('-n', '--iterations', type=int, default=5000,
@@ -159,10 +168,11 @@ def main():
     args.galois_field = eval(args.galois_field)
     args.generation_size = eval(args.generation_size)
     args.packet_size = eval(args.packet_size)
+    args.loss_rate = eval(args.loss_rate)
 
     # execute the given setting in parallel
     validate_parallel(args.folder, args.file_name, args.galois_field, args.generation_size,
-                      args.packet_size, args.prefill, args.n_processes, args.iterations)
+                      args.packet_size, args.loss_rate, args.prefill, args.n_processes, args.iterations)
 
 
 if __name__ == "__main__":

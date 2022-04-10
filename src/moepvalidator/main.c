@@ -127,7 +127,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 
     case 'l':
         args->loss_rate = strtof(arg, &endptr);
-        if ((!endptr && endptr != arg + strlen(arg)) || (args->loss_rate > 1))
+        if ((!endptr && endptr != arg + strlen(arg)) || (args->loss_rate > 1) || (args->loss_rate < 0))
             argp_failure(state, 1, errno, "Invalid loss rate: %s", arg);
 
         break;
