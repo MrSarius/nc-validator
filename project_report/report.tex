@@ -1,4 +1,4 @@
-%\documentclass[a4paper,german,10pt]{tumarticle}
+% \documentclass[a4paper,german,10pt]{tumarticle}
 \documentclass[a4paper,english,10pt]{tumarticle}
 
 \usepackage[utf8]{inputenc}
@@ -320,24 +320,24 @@ continues to increase.
 
 \begin{figure}[htb]
   \centering
-  \subfloat[$q=2$]{\includegraphics[scale=0.55]{figs/gf2}\label{fig:gf2}}
+  \subfloat[$q=2$]{\includegraphics[scale=0.53]{figs/gf2}\label{fig:gf2}}
   \hfill
-  \subfloat[$q=4$]{\includegraphics[scale=0.55]{figs/gf4}\label{fig:gf4}}
+  \subfloat[$q=4$]{\includegraphics[scale=0.53]{figs/gf4}\label{fig:gf4}}
   \hfill
-  \subfloat[$q=16$]{\includegraphics[scale=0.55]{figs/gf16}\label{fig:gf16}}
+  \subfloat[$q=16$]{\includegraphics[scale=0.53]{figs/gf16}\label{fig:gf16}}
   \hfill
-  \subfloat[$q=256$]{\includegraphics[scale=0.55]{figs/gf256}\label{fig:gf256}}
+  \subfloat[$q=256$]{\includegraphics[scale=0.53]{figs/gf256}\label{fig:gf256}}
+  \caption{Measured probability of decode ability after successful transmission
   of $N$ (generation size) random linear coded frames and theoretical
-  probability for generations sizes $N\in\{1, ..., 99\}$. Each plot uses a fixed Galois
+  probability for generations sizes $N\in\{1, ..., 100\}$. Each plot uses a fixed Galois
   Field sizes $q$. In other words, the plot shows the measured and theoretical
   probability that for generation size $N$ it was sufficient to sent $N$ frames,
   or whether more have been needed as the matrix at B did not have full rank.
   For all plots a frame size of 50 Bytes with 5000 iterations has been used in
   prefill mode. The y-axis has the same scale in all plots to make them easier to
   compare.
-  \label{fig:gfs}
-  \caption{Measured probability of decodeability after successful transmission}
-\end{figure}
+  }
+\end{figure}\label{fig:gfs}
 
 Table \ref{tab:mean-std} shows measured mean, standard deviation and theoretical
 lower bound decoding probabilities for all sub figures of Figure \ref{fig:gfs}.
@@ -352,15 +352,15 @@ Galois Fields and does only change very little for $N>20$.
   \caption{Mean, standard deviation and theoretical lower bound for the plots of Figure \ref{fig:gfs} over $N\ge20$}
   \label{tab:mean-std}
   \centering
-  \begin{tabular}{l|l|r|l}
+  \begin{tabular}{l|l|l|l}
     \toprule
        $q$ & Mean & Standard Deviation & Lower Bound \\
     %\hhline{=|=|=|=}
     \midrule
-    2 & 29.04\% & 0.81\% & 28.88\%\\
-    4 & 68.87\% & 0.62\% & 68.85\%\\
-    16 & 93.41\% & 0.33\% & 93.36\%\\
-    256 & 99.61\% & 0.08\% & 99.61\%\\
+    2 & 29.04\% & $\pm$0.81\% & 28.88\%\\
+    4 & 68.87\% & $\pm$0.62\% & 68.85\%\\
+    16 & 93.41\% & $\pm$0.33\% & 93.36\%\\
+    256 & 99.61\% & $\pm$0.08\% & 99.61\%\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -408,11 +408,24 @@ Galois Fields and does only change very little for $N>20$.
 
 % main -g 100 -i 5000 -c ... -p 50 -f 0 -m
 
+% \begin{figure}[htb]
+%   \centering
+%   \subfloat[GF 2 with prefill]{\includegraphics[scale=0.55]{figs/gf2_prefill_hist}\label{fig:gf2_prefill}}
+%   \hfill
+%   \subfloat[GF 2 without prefill]{\includegraphics[scale=0.55]{figs/gf2_nonprefill_hist}\label{fig:gf2_nonprefill}}
+%   \caption{}
+%   \label{fig:hists}
+% \end{figure}
+
 \begin{figure}[htb]
   \centering
-  \subfloat[GF 2 with prefill]{\includegraphics[scale=0.55]{figs/gf2_prefill_hist}\label{fig:gf2_prefill}}
+  \subfloat[GF 2 with prefill]{\includegraphics[scale=0.55]{figs/prefill_frames_sent}\label{fig:prefill_frames_sent}}
   \hfill
-  \subfloat[GF 2 without prefill]{\includegraphics[scale=0.55]{figs/gf2_nonprefill_hist}\label{fig:gf2_nonprefill}}
+  \subfloat[GF 2 with prefill and 50\% packet loss]{\includegraphics[scale=0.55]{figs/prefill_with_loss_overall_frames_sent_with_50_loss}\label{fig:prefill_with_loss}}
+  \hfill
+  \subfloat[GF 2 with random order]{\includegraphics[scale=0.55]{figs/random_order_frames_sent_before_full_rank}\label{fig:random_order_before}}
+  \hfill
+  \subfloat[GF 2 with random order]{\includegraphics[scale=0.55]{figs/random_order_overall_frames_sent}\label{fig:random_order_overall}}
   \caption{}
   \label{fig:hists}
 \end{figure}
