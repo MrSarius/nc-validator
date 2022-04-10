@@ -63,7 +63,8 @@
 	\bfseries\Large Validation Tool for \texttt{libmoeprlnc}\\[.5\baselineskip]
 \end{center}
 \begin{center}
-	\small Group 6\\
+	\large Group 6\\\vspace{0.5cm}
+	\small Tobias Jülg and Ben Riegel\\% names are sorted alphabetically after last name
 	\today
 \end{center}
 
@@ -280,10 +281,25 @@ The proposed tool accepts the following command line parameters:
 We had to extend \texttt{libmoeprlnc} by the function shown in Figure \ref{code}, as the 
 library does not offer the possibility to change the seed of a \texttt{rlnc\_block} from outside. The seed is 
 initialized with zero when a \texttt{rlnc\_block} is created. This seed is then used by the \texttt{rlnc\_block\_decode()}
-method to pseudo-randomly (\texttt{rand\_r(seed)}) combine data with each other. However, if the same seed is used, the 
+method to pseudo-randomly created coded frames with \texttt{rand\_r(seed)}. However, if the same seed is used, the 
 data of generation A will always be coded in the same sequence. 
-While this behavior does not need to cause problems in a real-world application, it does make an statistical evaluation obsolete.
+While this behavior does not need to cause problems in a real-world application, it does make an statistical evaluation obsolete as all iterations will produce exactly the same coded frames given that all other parameters are unchanged.
 
+One can see this effect in Figure \ref{fig:noseed} where the measured and theoretical decoding probability after $N$ (generation size) of received frames is plotted against the used generation size. The plots have the same scaling. One can see that the plot without a seed set has significant more jitter. This jitter persists even when one uses larger and larger amounts of iterations per generation size and this is because every single iteration will lead to the very same coded packets, nullifying the argument of taking the mean over several iterations. On the other hand, the second plot shows a range of experiments where the seed has been set as we described above. Here one does see a good convergence towards the theoretical calculated decoding probability as the mean of the iterations will balance out outliers.
+% Thus, such a seed setting method is needed in order to allow meaningful statistical analysis.
+% Thus, a method to let the validation tool set a new seed for each iteration is needed in order to allow a statistical analysis.
+
+% (note that the values in the plot are always mean values of several thousand iterations per generation size)
+% Normally one would think that with a large amount of iterations the jitter shou
+
+\begin{figure}[htb]
+  \centering
+  \subfloat[GF 2 without seed explicitly set in \texttt{libmoeprlnc}]{\includegraphics[scale=0.55]{figs/gf2_noseed}\label{fig:gf2_noseed}}
+  \hfill
+  \subfloat[GF 2 with different seed for each iterations using the function in Figure \ref{code}]{\includegraphics[scale=0.55]{figs/gf2_ylim}\label{fig:gf2_seed}}
+  \caption{The two plots show the decoding probability after $N$ (generation size) received frames versus the generation size for a validation with the default seed in \protect\subref{fig:gf2_noseed} and with the seed set by the function shown in Figure \ref{code} in \protect\subref{fig:gf2_seed}. The decoding probability is calculated over 5000 iterations with a frame size of 50 Bytes and the prefill mode for Galois Field size $q=2$.}
+  \label{fig:noseed}
+\end{figure}
 
 \begin{figure}[h]
   \begin{lstlisting}[language=C]
@@ -297,9 +313,10 @@ void rlnc_block_set_seed(rlnc_block_t b, unsigned int seed){
 \end{figure}
 
 We use the function in Figure \ref{code} to give each \texttt{rlnc\_blocks} a unique seed before each iteration.
-
 Note that there is a version of the code in the repository where the calls to this method 
 have been commented out to ensure that the code works and compiles with the unpatched version of \texttt{libmoeprlnc}.
+
+
 
 \subsection{Python Tool for Parallel Validation of Different Configurations}
 ...
