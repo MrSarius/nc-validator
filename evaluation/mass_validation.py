@@ -63,8 +63,6 @@ def validate(
     if galois_field not in gf2id:
         raise RuntimeError(
             "Only the fields q in {2, 4, 16, 256} are supported!")
-    print(ex_cmd.format(gen_size, iterations,
-                   " " if not file_name else f" -c {file_name} ", packet_size, gf2id[galois_field], " -m"if prefill else "", loss_rate))
     re = os.system(ex_cmd.format(gen_size, iterations,
                    " " if not file_name else f" -c {file_name} ", packet_size, gf2id[galois_field], " -m"if prefill else "", loss_rate))
     if re != 0:
