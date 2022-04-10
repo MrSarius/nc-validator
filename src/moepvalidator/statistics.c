@@ -49,6 +49,11 @@ void init_stats(struct arguments a)
     fprintf(fptr, "gf,gen_size,frame_size,frames_sent,frames_delivered,frames_dropped,loss_rate,linear_dependent,percentage_linear_dependent,frames_delivered_after_full_rank,prefill\n");
 }
 
+/**
+ * Closes the open file descriptor of the statistics csv. Note that it is not needed to close the file descriptor for unintended exits as the exit function
+ * automatically closes all open file descriptors.
+ * 
+ */
 void close_stats()
 {
     if (fptr)
@@ -62,6 +67,7 @@ void close_stats()
  *
  * @param frames_delivered Frames delivered to destination in current iteration
  * @param frames_dropped Frames dropped in current iteration
+ * @param frames_delivered_after_full_rank Number of frames which have been unnecessary delivered as B already had full rank
  */
 void update_statistics(size_t frames_delivered, size_t frames_dropped, size_t frames_delivered_after_full_rank)
 {

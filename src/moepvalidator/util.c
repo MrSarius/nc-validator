@@ -35,6 +35,11 @@
 
 bool verbose = false;
 
+/**
+ * Set the verbosity level. Currently only verbosity and non verbosity at all are available as levels.
+ * 
+ * @param v Wether verbose output should be printed or not
+ */
 void setVerbose(bool v) { verbose = v; }
 
 /**
@@ -160,8 +165,8 @@ uint8_t randbyte()
 /**
  * Fills a with n random bytes
  *
- * @param n
- * @param a
+ * @param n amount of bytes that should be put in a
+ * @param a needs to be at least of size n*sizeof(char)
  */
 void randbytes(size_t n, uint8_t *a)
 {
