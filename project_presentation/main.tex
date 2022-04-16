@@ -1,0 +1,154 @@
+\documentclass[t]{beamer} %[t]
+% dont use section page: sectionpage=none
+\usetheme{metropolis}           % Use metropolis theme
+\usepackage{appendixnumberbeamer}
+\input{settings.tex}
+\AtBeginBibliography{\footnotesize}
+\setbeamerfont{footnote}{size=\tiny}
+\setbeamercolor{background canvas}{bg=white}
+\citetrackerfalse
+
+% \usepackage{tabularx}
+
+
+% \usepackage[utf8]{inputenc}
+% \usepackage[TS1,T1]{fontenc}
+% \usepackage{array, booktabs}
+% \usepackage{graphicx}
+% \usepackage{caption}
+% \usepackage{animate}
+
+% \setbeamerfont{footnote}{size=\tiny}
+% \setbeamercolor{background canvas}{bg=white}
+
+
+\title{Validation Tool for \texttt{libmoeprlnc}}
+\date{\today}
+\author{Group 6\\Tobias Jülg and Ben Riegel}
+% \subtitle{Course 7, Ferienakademie 2021}
+\institute[TUM]{Technical University of Munich}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{bibliography item}[text]
+
+% \setbeamertemplate{frame footer}{\insertshortauthor~(\insertshortinstitute)}
+% \setbeamerfont{page number in head/foot}{size=\tiny}
+% \setbeamercolor{footline}{fg=gray}
+
+
+\begin{document}
+\maketitle
+
+
+
+%\metroset{sectionpage=none}
+
+\begin{frame}{Outline}
+  \setbeamertemplate{section in toc}[sections numbered]
+  \tableofcontents %[hideallsubsections]
+\end{frame}
+
+
+\section{Introduction}
+\begin{frame}{Why should \texttt{libmoeprlnc} need validation?}
+  \begin{itemize}
+    \item ...
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Outline}
+  \setbeamertemplate{section in toc}[sections numbered]
+  \tableofcontents %[hideallsubsections]
+\end{frame}
+
+
+% example slide to copy from
+% \section{Weight Initialization}
+% \begin{frame}{How to initialize learnable parameters?}
+%   \begin{columns}
+%     \column{.5\textwidth}
+%     \visible<4->{
+%     \begin{figure}[htb]
+%       \centering
+%       \includegraphics[scale=0.16]{figures/small_weights}
+%     }
+%     \end{figure}
+%     \visible<6->{
+%     \begin{figure}[htb]
+%       \centering
+%       \includegraphics[scale=0.15]{figures/big_weights}
+%     \end{figure}
+%     }
+%     \column{.5\textwidth}
+%   \footnotesize
+%   Ideas:
+%   \begin{itemize}
+%     \item Set all weights to zero: $w=0$
+%     \pause
+%     \item[$\rightarrow$] all hidden units compute the same function, no symmetric breaking
+%     \pause
+%     \item Small random numbers, e.g. Gaussian $\mu = 0, \sigma^2 = 0.01$
+%     % \begin{figure}[htb]
+%     %   \centering
+%     %   \includegraphics[scale=0.12]{figures/small_weights}
+%     % \end{figure}
+%     \pause 
+%     \item[$\rightarrow$] Output becomes very small, vanishing gradient
+%     \pause
+%     \item Large random numbers e.g. $\mu=0, \sigma^2=1$ 
+%     % \begin{figure}[htb]
+%     %   \centering
+%     %   \includegraphics[scale=0.12]{figures/big_weights}
+%     % \end{figure}
+%     \pause
+%     \item[$\rightarrow$] Large outputs, outputs are regions of small gradients for some activation functions
+%   \end{itemize}
+%   \end{columns}
+% \end{frame}
+% \begin{frame}{Xavier Initialization \cite{pmlr-v9-glorot10a}: Idea}
+%   \footnotesize
+%   Distribution of each output neuron $S$ should match the distribution $X_i$ of each input neuron
+%   \only<2->{
+%   \begin{itemize}
+%     \item Assume we have $n$ input neurons, so $i\in\{0, ..., n\}$
+%     \item Given: $\mathbb{E}[X_i] = \mathbb{E}[W_i] = 0$, $\text{Var}(X_i)$
+%     \item Condition: $\text{Var}(X_i) \overset{!}{=} \text{Var}(S)$
+%   \end{itemize}}
+%   \only<2->{
+%   % \begin{figure}[htb]
+%   %   \centering
+%   %   \vspace{-0.5cm}
+%   %   \includegraphics[scale=0.2]{figures/weight_init_without_question}
+%   % \end{figure}}
+%   \only<3->{
+%     \vspace{-0.7cm}
+%   How to choose $\text{Var}(W_i)$?}
+% \end{frame}
+
+
+
+\begin{frame}[standout]
+  Questions?
+\end{frame}
+
+% if we have references:
+% \metroset{sectionpage=none}
+% \begin{frame}[allowframebreaks]{References}
+%   % \nocite{...}
+%   \footnotesize
+%   \printbibliography{}
+% \end{frame}
+
+% Backup slides go here
+\appendix
+\metroset{sectionpage=simple}
+\section{Backup}
+\begin{frame}{...}
+  \begin{itemize}
+    \item ...
+  \end{itemize}
+\end{frame}
+
+
+
+
+\end{document} 
