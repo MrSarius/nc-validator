@@ -18,12 +18,14 @@
 % \usepackage{caption}
 % \usepackage{animate}
 
+
 % \setbeamerfont{footnote}{size=\tiny}
 % \setbeamercolor{background canvas}{bg=white}
 
 
 \title{Validation Tool for \texttt{libmoeprlnc}}
-\date{\today}
+% \date{\today}
+\date{April 22, 2022}
 \author{Group 6\\Tobias Jülg and Ben Riegel}
 % \subtitle{Course 7, Ferienakademie 2021}
 \institute[TUM]{Technical University of Munich}
@@ -50,9 +52,17 @@
 
 \section{Introduction}
 \begin{frame}{Why should \texttt{libmoeprlnc} need validation?}
+  \begin{columns}
+  \column{.5\textwidth}
+    \begin{figure}[htb]
+      \centering
+      \includegraphics[scale=0.16]{figures/gf2}
+    \end{figure}
+  \column{.5\textwidth}
   \begin{itemize}
     \item ...
   \end{itemize}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Outline}
@@ -61,73 +71,119 @@
 \end{frame}
 
 
-% example slide to copy from
-% \section{Weight Initialization}
-% \begin{frame}{How to initialize learnable parameters?}
-%   \begin{columns}
-%     \column{.5\textwidth}
-%     \visible<4->{
-%     \begin{figure}[htb]
-%       \centering
-%       \includegraphics[scale=0.16]{figures/small_weights}
-%     }
-%     \end{figure}
-%     \visible<6->{
-%     \begin{figure}[htb]
-%       \centering
-%       \includegraphics[scale=0.15]{figures/big_weights}
-%     \end{figure}
-%     }
-%     \column{.5\textwidth}
-%   \footnotesize
-%   Ideas:
-%   \begin{itemize}
-%     \item Set all weights to zero: $w=0$
-%     \pause
-%     \item[$\rightarrow$] all hidden units compute the same function, no symmetric breaking
-%     \pause
-%     \item Small random numbers, e.g. Gaussian $\mu = 0, \sigma^2 = 0.01$
-%     % \begin{figure}[htb]
-%     %   \centering
-%     %   \includegraphics[scale=0.12]{figures/small_weights}
-%     % \end{figure}
-%     \pause 
-%     \item[$\rightarrow$] Output becomes very small, vanishing gradient
-%     \pause
-%     \item Large random numbers e.g. $\mu=0, \sigma^2=1$ 
-%     % \begin{figure}[htb]
-%     %   \centering
-%     %   \includegraphics[scale=0.12]{figures/big_weights}
-%     % \end{figure}
-%     \pause
-%     \item[$\rightarrow$] Large outputs, outputs are regions of small gradients for some activation functions
-%   \end{itemize}
-%   \end{columns}
-% \end{frame}
-% \begin{frame}{Xavier Initialization \cite{pmlr-v9-glorot10a}: Idea}
-%   \footnotesize
-%   Distribution of each output neuron $S$ should match the distribution $X_i$ of each input neuron
-%   \only<2->{
-%   \begin{itemize}
-%     \item Assume we have $n$ input neurons, so $i\in\{0, ..., n\}$
-%     \item Given: $\mathbb{E}[X_i] = \mathbb{E}[W_i] = 0$, $\text{Var}(X_i)$
-%     \item Condition: $\text{Var}(X_i) \overset{!}{=} \text{Var}(S)$
-%   \end{itemize}}
-%   \only<2->{
-%   % \begin{figure}[htb]
-%   %   \centering
-%   %   \vspace{-0.5cm}
-%   %   \includegraphics[scale=0.2]{figures/weight_init_without_question}
-%   % \end{figure}}
-%   \only<3->{
-%     \vspace{-0.7cm}
-%   How to choose $\text{Var}(W_i)$?}
-% \end{frame}
+% Methodology
+\section{Idea and Methodology}
+\begin{frame}{Basic Idea}
+  \begin{itemize}
+    % todo mention random drop
+    \item ...
+  \end{itemize}
+    \begin{figure}[htb]
+      \centering
+  \begin{tikzpicture}
+    \node[draw] at (0, 2)   (ga) {Generation A};
+    \node[draw] at (0, 0)   (ba) {\texttt{rlnc\_block} A};
+    \node[draw] at (6, 2)   (gb) {Generation B};
+    \node[draw] at (6, 0)   (bb) {\texttt{rlnc\_block} B};
+    \draw [thick,->] (ga) -- (ba) node[midway,left] {create\_at\_A()};
+    \draw [thick,->] (ba) -- (bb) node[midway,below] {transmit\_A2B()};
+    \draw [thick,->] (bb) -- (gb) node[midway,right] {consume\_at\_B()};
+  \end{tikzpicture}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Modes}
+  Random Mode
+  \begin{itemize}
+    \item Random order of \texttt{create\_at\_A}, \texttt{transmit\_A2B} and \texttt{consume\_at\_B}
+    \item ...
+  \end{itemize}
+  Prefill Mode
+  \begin{itemize}
+    \item ...
+  \end{itemize}
+\end{frame}
+
+\section{Results and Evaluation}
+
+\begin{frame}{Overall Outcome}
+  \begin{itemize}
+    \item In the end, all of our tests both modes run through without problems
+    \item Statistical validation agrees to theoretical expectations
+    \item We discovered two minor things
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Linear Independency: Theory}
+  Probability of $N$ frames being linear independent for generation size $N$ no matter the frames size, where $q$ is the Galois Field size:%\\
+  % probability that N randomly linear coded frames are sufficient for transmitting with generation size $N$
+\begin{equation} 
+  \text{Pr}\left[\text{dim}\bigcup_{i=1}^{N}\{c_i\} = N\right] = \prod_{i=1}^{N} \left(1 - \frac{q^{i - 1}}{q ^ {N}}\right)
+  \label{eq:decode_prob}
+\end{equation}
+\begin{itemize}
+  \item[$\rightarrow$] Prob. that $N$ randomly linear coded transmitted frames are sufficient for decoding
+% To verify the correspondence the theoratical prob
+  \item[$\rightarrow$] Have to use prefill mode
+  \item For each supported\footnote{$q\in\{2, 4, 16, 256\}$} $q$ we run our validation for increasing\footnote{$N\in[100]$} $N$
+  \item For each $N$ we transmitted 5000 frames and counted the ones that finished after $N$ transmission
+  % \item[$\righarrow$] Prob. of succ. trans. after $N$ for 
+  % counted the over 5000 iterations to the prob.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Linear Independency: Measurements I}
+  \vspace{-1cm}
+\begin{figure}
+  \centering
+  \subfloat[$q=2$]{  \includegraphics[scale=0.33]{figures/gf2}\label{fig:gf2}}
+  \hfill
+  \subfloat[$q=4$]{  \includegraphics[scale=0.33]{figures/gf4}\label{fig:gf4}}
+  \hfill
+  \subfloat[$q=16$]{ \includegraphics[scale=0.33]{figures/gf16}\label{fig:gf16}}
+  \hfill
+  \subfloat[$q=256$]{\includegraphics[scale=0.33]{figures/gf256}\label{fig:gf256}}
+  %\caption{...}\label{fig:gfs}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Linear Independency: Measurements II}
+\begin{table}[htb]
+  \caption{Mean, standard deviation and theoretical lower bound for the plots over $N\ge20$ in percentage}
+  \label{tab:mean-std}
+  \centering
+  \begin{tabular}{l|l|l|l}
+    \toprule
+       $q$ & Mean & Standard Deviation & Lower Bound \\
+    \midrule
+    2 & 29.04\% & $\pm$0.81\% & 28.88\%\\
+    4 & 68.87\% & $\pm$0.62\% & 68.85\%\\
+    16 & 93.41\% & $\pm$0.33\% & 93.36\%\\
+    256 & 99.61\% & $\pm$0.08\% & 99.61\%\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{What we discovered}
+  \begin{itemize}
+    \item Missing check in \texttt{$rlnc\_block\_decode$} whether the passed length corresponds to the expected size
+    \item Seed always set to zero and not changeable by the user
+    \item[$\rightarrow$] Leads always to same coding vectors if everything else unchanged
+    \item[$\rightarrow$] Extreme results, bad for statistical evaluation
+  \end{itemize}
+    \begin{figure}[htb]
+      \centering
+      \includegraphics[scale=0.45]{figures/gf2_noseed}
+    \end{figure}
+\end{frame}
+
 
 
 
 \begin{frame}[standout]
-  Questions?
+  Live Demo!
 \end{frame}
 
 % if we have references:
@@ -147,8 +203,6 @@
     \item ...
   \end{itemize}
 \end{frame}
-
-
 
 
 \end{document} 
