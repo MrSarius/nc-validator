@@ -40,20 +40,13 @@
 \begin{document}
 \maketitle
 
-
-
 %\metroset{sectionpage=none}
-
-\begin{frame}{Outline}
-  \setbeamertemplate{section in toc}[sections numbered]
-  \tableofcontents %[hideallsubsections]
-\end{frame}
-
 
 \section{Introduction}
 \begin{frame}{Why should \texttt{libmoeprlnc} need validation?}
   \begin{columns}
   \column{.5\textwidth}
+  % TODO: Example image
     \begin{figure}[htb]
       \centering
       \includegraphics[scale=0.16]{figures/gf2}
@@ -74,33 +67,54 @@
 % Methodology
 \section{Idea and Methodology}
 \begin{frame}{Basic Idea}
-  \begin{itemize}
-    % todo mention random drop
-    \item ...
-  \end{itemize}
+  % \vspace{-0.3cm}
     \begin{figure}[htb]
-      \centering
+      % \centering
+  % \hspace{-1cm}
   \begin{tikzpicture}
     \node[draw] at (0, 2)   (ga) {Generation A};
     \node[draw] at (0, 0)   (ba) {\texttt{rlnc\_block} A};
     \node[draw] at (6, 2)   (gb) {Generation B};
     \node[draw] at (6, 0)   (bb) {\texttt{rlnc\_block} B};
-    \draw [thick,->] (ga) -- (ba) node[midway,left] {create\_at\_A()};
-    \draw [thick,->] (ba) -- (bb) node[midway,below] {transmit\_A2B()};
-    \draw [thick,->] (bb) -- (gb) node[midway,right] {consume\_at\_B()};
+    \draw [thick,->] (ga) -- (ba) node[midway,left] {\texttt{create\_at\_A()}};
+    \draw [thick,->] (ba) -- (bb) node[midway,below] {\texttt{transmit\_A2B()}};
+    \draw [thick,->] (bb) -- (gb) node[midway,right] {\texttt{consume\_at\_B()}};
   \end{tikzpicture}
     \end{figure}
+  % \footnotesize
+  \pause
+  \begin{itemize}
+    % todo mention random drop
+    % \item Two participants A and B with unidirectional traffic
+    \visible<7>{\item repeat for $n$ iterations}
+    \begin{itemize}
+    \item Create random generation at A
+  \pause
+    \item \texttt{create\_at\_A} adds the next uncoded frame to \texttt{rlnc\_block} at A
+  \pause
+    \item \texttt{transmit\_A2B} creates a RLC frame from A, drops it with specified prob. and puts it into the \texttt{rlnc\_block} at B
+  \pause
+    \item \texttt{consume\_at\_B} tires to read the next unencoded frame from B
+  \pause
+    \item Compare unencoded generation from B with the one at A
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Modes}
-  Random Mode
+  \textbf{Random Mode}
   \begin{itemize}
     \item Random order of \texttt{create\_at\_A}, \texttt{transmit\_A2B} and \texttt{consume\_at\_B}
-    \item ...
+    \item Used to find rare bugs in \texttt{libmoeprlnc} as execution order that haven't been thought of are also tested
+    \item e.g. trying to encode and sent a frame when no frames have been added to the generation on A
+    \pause
+    \item[$\rightarrow$] Problematic for statistical evaluation
   \end{itemize}
-  Prefill Mode
+  \pause
+  \textbf{Prefill Mode}
   \begin{itemize}
-    \item ...
+    \item First add all frames to A, then encode and transmit all frames and finally decode them at B
+    \item Used for statistical evaluation
   \end{itemize}
 \end{frame}
 
@@ -182,6 +196,8 @@
 
 
 
+% often hard to use as badly documented, often guess and find out with debugging or read the code, this is not how an api should work :(
+% build system poluted, why is there no build folder, would make your git life much easier...
 \begin{frame}[standout]
   Live Demo!
 \end{frame}
