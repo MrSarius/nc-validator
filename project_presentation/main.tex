@@ -62,7 +62,7 @@
 		\item Why should \texttt{libmoeprlnc} need validation? 
 		\begin{itemize}
 			\item Library has no adequate testing suit yet
-			\item Check decoding probability -> Expectation vs. reality
+			\item Check decoding probability $\rightarrow$ expectation vs. reality
 		\end{itemize}
 	\end{itemize}
 \end{frame}
@@ -125,26 +125,25 @@
 
 \begin{frame}{Overall Outcome}
 	\begin{itemize}
-		\item In the end, all of our tests both modes run through without problems
+		\item All of our tests passed without problems
 		\item Statistical validation agrees to theoretical expectations
-		\item We discovered two minor things
+		\item Minor issue discovered in \texttt{libmoeprlnc}
 	\end{itemize}
 \end{frame}
 
 
 \begin{frame}{Linear Independency: Theory}
-	Probability of $N$ frames being linear independent for generation size $N$ no matter the frames size, where $q$ is the Galois Field size:%\\
-	% probability that N randomly linear coded frames are sufficient for transmitting with generation size $N$
+	Probability of $N$ coded frames being linear independent:
 	\begin{equation} 
 		\text{Pr}\left[\text{dim}\bigcup_{i=1}^{N}\{c_i\} = N\right] = \prod_{i=1}^{N} \left(1 - \frac{q^{i - 1}}{q ^ {N}}\right)
 		\label{eq:decode_prob}
 	\end{equation}
 	\begin{itemize}
-		\item[$\rightarrow$] Prob. that $N$ randomly linear coded transmitted frames are sufficient for decoding
-		      % To verify the correspondence the theoratical prob
-		\item[$\rightarrow$] Have to use prefill mode
+		% \item[$\rightarrow$] Prob. that $N$ randomly linear coded transmitted frames are sufficient for decoding
+		\item[$\rightarrow$] Use prefill mode for verification
+		% as it assumes that the coding is done over the whole generation
 		\item For each supported\footnote{$q\in\{2, 4, 16, 256\}$} $q$ we run our validation for increasing\footnote{$N\in[100]$} $N$
-		\item For each $N$ we transmitted 5000 frames and counted the ones that finished after $N$ transmission
+		\item For each $N$ we transmitted 5000 generations and counted the ones that could decode after $N$ transmission
 		      % \item[$\righarrow$] Prob. of succ. trans. after $N$ for 
 		      % counted the over 5000 iterations to the prob.
 	\end{itemize}
@@ -183,12 +182,13 @@
 	\end{table}
 \end{frame}
 
-\begin{frame}{What we discovered}
+\begin{frame}{What We Discovered}
+	Seed always set to zero and not changeable by the user
 	\begin{itemize}
-		\item Missing check in \texttt{$rlnc\_block\_decode$} whether the passed length corresponds to the expected size
-		\item Seed always set to zero and not changeable by the user
-		\item[$\rightarrow$] Leads always to same coding vectors if everything else unchanged
-		\item[$\rightarrow$] Extreme results, bad for statistical evaluation
+		% \item Missing check in \texttt{$rlnc\_block\_decode$} whether the passed length corresponds to the expected size
+		\item[$\rightarrow$] Coding vectors are equal over all runs if nothing else changed
+		\item[$\rightarrow$] Mean of several iterations does not change outcome
+		\item[$\rightarrow$] High fluctuation, not optimal for statistical evaluation
 	\end{itemize}
 	\begin{figure}[htb]
 		\centering
