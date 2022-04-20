@@ -27,7 +27,6 @@
 % \date{\today}
 \date{April 22, 2022}
 \author{Group 6\\Tobias Jülg and Ben Riegel}
-% \subtitle{Course 7, Ferienakademie 2021}
 \institute[TUM]{Technical University of Munich}
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{bibliography item}[text]
@@ -51,19 +50,19 @@
 \begin{frame}{What and Why?}
 	\begin{itemize}
 		\item What does the \texttt{libmoeprlnc} do? 
-		\begin{itemize}
-			\item implementation random linear network coding
-			\item create random coded data
-			\item decode coded data and eliminate linear dependencies
-		\end{itemize}
+		      \begin{itemize}
+		      	\item implementation random linear network coding
+		      	\item create random coded data
+		      	\item decode coded data and eliminate linear dependencies
+		      \end{itemize}
 	\end{itemize}
-
+	
 	\begin{itemize}
 		\item Why should \texttt{libmoeprlnc} need validation? 
-		\begin{itemize}
-			\item Library has no adequate testing suit yet
-			\item Check decoding probability $\rightarrow$ expectation vs. reality
-		\end{itemize}
+		      \begin{itemize}
+		      	\item Library has no adequate testing suit yet
+		      	\item Check decoding probability $\rightarrow$ expectation vs. reality
+		      \end{itemize}
 	\end{itemize}
 \end{frame}
 
@@ -87,8 +86,6 @@
 	% \footnotesize
 	\pause
 	\begin{itemize}
-		% todo mention random drop
-		% \item Two participants A and B with unidirectional traffic
 		\visible<7>{\item repeat for $n$ iterations}
 		\begin{itemize}
 			\item Fill generation A with random bytes.
@@ -139,13 +136,9 @@
 		\label{eq:decode_prob}
 	\end{equation}
 	\begin{itemize}
-		% \item[$\rightarrow$] Prob. that $N$ randomly linear coded transmitted frames are sufficient for decoding
 		\item[$\rightarrow$] Use prefill mode for verification
-		% as it assumes that the coding is done over the whole generation
 		\item For each supported\footnote{$q\in\{2, 4, 16, 256\}$} $q$ we run our validation for increasing\footnote{$N\in[100]$} $N$
 		\item For each $N$ we transmitted 5000 generations and counted the ones that could decode after $N$ transmission
-		      % \item[$\righarrow$] Prob. of succ. trans. after $N$ for 
-		      % counted the over 5000 iterations to the prob.
 	\end{itemize}
 \end{frame}
 
@@ -160,7 +153,6 @@
 		\subfloat[$q=16$]{ \includegraphics[scale=0.33]{figures/gf16}\label{fig:gf16}}
 		\hfill
 		\subfloat[$q=256$]{\includegraphics[scale=0.33]{figures/gf256}\label{fig:gf256}}
-		%\caption{...}\label{fig:gfs}
 	\end{figure}
 \end{frame}
 
@@ -185,7 +177,6 @@
 \begin{frame}{What We Discovered}
 	Seed always set to zero and not changeable by the user
 	\begin{itemize}
-		% \item Missing check in \texttt{$rlnc\_block\_decode$} whether the passed length corresponds to the expected size
 		\item[$\rightarrow$] Coding vectors are equal over all runs if nothing else changed
 		\item[$\rightarrow$] Mean of several iterations does not change outcome
 		\item[$\rightarrow$] High fluctuation, not optimal for statistical evaluation
@@ -196,16 +187,11 @@
 	\end{figure}
 \end{frame}
 
-
-
-
-% often hard to use as badly documented, often guess and find out with debugging or read the code, this is not how an api should work :(
-% build system poluted, why is there no build folder, would make your git life much easier...
 \section{Live Demo}
 
-%\begin{frame}[standout]
-%	Live Demo!
-%\end{frame}
+\begin{frame}[standout]
+	Questions?
+\end{frame}
 
 % if we have references:
 % \metroset{sectionpage=none}
@@ -216,14 +202,14 @@
 % \end{frame}
 
 % Backup slides go here
-\appendix
-\metroset{sectionpage=simple}
-\section{Backup}
-\begin{frame}{...}
-	\begin{itemize}
-		\item ...
-	\end{itemize}
-\end{frame}
+% \appendix
+% \metroset{sectionpage=simple}
+% \section{Backup}
+% \begin{frame}{...}
+% 	\begin{itemize}
+% 		\item ...
+% 	\end{itemize}
+% \end{frame}
 
 
 \end{document} 
