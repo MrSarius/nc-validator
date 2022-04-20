@@ -42,31 +42,34 @@
 
 %\metroset{sectionpage=none}
 
-\section{Introduction}
-\begin{frame}{Why should \texttt{libmoeprlnc} need validation?}
-	\begin{columns}
-		\column{.5\textwidth}
-		% TODO: Example image
-		\begin{figure}[htb]
-			\centering
-			\includegraphics[scale=0.16]{figures/gf2}
-		\end{figure}
-		\column{.5\textwidth}
-		\begin{itemize}
-			\item ...
-		\end{itemize}
-	\end{columns}
-\end{frame}
-
 \begin{frame}{Outline}
 	\setbeamertemplate{section in toc}[sections numbered]
 	\tableofcontents %[hideallsubsections]
 \end{frame}
 
+\section{Introduction}
+\begin{frame}{What and Why?}
+	\begin{itemize}
+		\item What does the \texttt{libmoeprlnc} do? 
+		\begin{itemize}
+			\item implementation random linear network coding
+			\item create random coded data
+			\item decode coded data and eliminate linear dependencies
+		\end{itemize}
+	\end{itemize}
+
+	\begin{itemize}
+		\item Why should \texttt{libmoeprlnc} need validation? 
+		\begin{itemize}
+			\item Library has no adequate testing suit yet
+			\item Check decoding probability -> Expectation vs. reality
+		\end{itemize}
+	\end{itemize}
+\end{frame}
 
 % Methodology
-\section{Idea and Methodology}
-\begin{frame}{Basic Idea}
+\section{Methodology}
+\begin{frame}{Basic Idea behind the Tool}
 	% \vspace{-0.3cm}
 	\begin{figure}[htb]
 		% \centering
@@ -88,15 +91,15 @@
 		% \item Two participants A and B with unidirectional traffic
 		\visible<7>{\item repeat for $n$ iterations}
 		\begin{itemize}
-			\item Create random generation at A
+			\item Fill generation A with random bytes.
 			      \pause
-			\item \texttt{create\_at\_A} adds the next uncoded frame to \texttt{rlnc\_block} at A
+			\item \texttt{create\_at\_A} adds the next frame to \texttt{rlnc\_block} at A
 			      \pause
-			\item \texttt{transmit\_A2B} creates a RLC frame from A, drops it with specified prob. and puts it into the \texttt{rlnc\_block} at B
+			\item \texttt{transmit\_A2B} send coded frame from A to B. Frame might be lost with user-defined probability.
 			      \pause
-			\item \texttt{consume\_at\_B} tires to read the next unencoded frame from B
+			\item \texttt{consume\_at\_B} tires to read the next deencoded frame from B
 			      \pause
-			\item Compare unencoded generation from B with the one at A
+			\item \textbf{Compare unencoded generation from B with the one at A}
 		\end{itemize}
 	\end{itemize}
 \end{frame}
@@ -104,16 +107,16 @@
 \begin{frame}{Modes}
 	\textbf{Random Mode}
 	\begin{itemize}
-		\item Random order of \texttt{create\_at\_A}, \texttt{transmit\_A2B} and \texttt{consume\_at\_B}
-		\item Used to find rare bugs in \texttt{libmoeprlnc} as execution order that haven't been thought of are also tested
-		\item e.g. trying to encode and sent a frame when no frames have been added to the generation on A
+		\item Executes the 3 presented functions in a random order.
+		\item Finds rare bugs in \texttt{libmoeprlnc} as random scenarios are tested.
+		\item e.g. trying to encode and sent a frame when no frames have been added to the \texttt{rlnc\_block A}
 		      \pause
-		\item[$\rightarrow$] Problematic for statistical evaluation
+		\item[$\rightarrow$] Makes statistical evaluation hard
 	\end{itemize}
 	\pause
 	\textbf{Prefill Mode}
 	\begin{itemize}
-		\item First add all frames to A, then encode and transmit all frames and finally decode them at B
+		\item First fully fill \texttt{rlnc\_block A}, then transmit until B side has full rank.
 		\item Used for statistical evaluation
 	\end{itemize}
 \end{frame}
@@ -198,9 +201,11 @@
 
 % often hard to use as badly documented, often guess and find out with debugging or read the code, this is not how an api should work :(
 % build system poluted, why is there no build folder, would make your git life much easier...
-\begin{frame}[standout]
-	Live Demo!
-\end{frame}
+\section{Live Demo}
+
+%\begin{frame}[standout]
+%	Live Demo!
+%\end{frame}
 
 % if we have references:
 % \metroset{sectionpage=none}
