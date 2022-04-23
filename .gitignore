@@ -5,3 +5,5 @@
 */**/ptmlink
 */**/libmoep*
 */**/venv
+*/**/__pycache__
+*/**/*csv*
